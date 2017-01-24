@@ -1,10 +1,7 @@
 package com.example.ibrhm.sayac;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -22,59 +19,9 @@ public class MainActivity extends AppCompatActivity {
     Button start;
     Button stop;
     TextView textView;
-    private BroadcastReceiver broadcast,broadcastReceiver;
     Button Open,Close;
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(broadcast == null){
-            broadcast=new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    textView.append("\n" + intent.getExtras().get("coordinates"));
+    Database database;
 
-                }
-            };
-
-        }
-
-        registerReceiver(broadcast,new IntentFilter("location_update"));
-
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(broadcast!= null){
-            unregisterReceiver(broadcast);
-
-        }
-
-    }
-    /* renamed from: com.example.ibrhm.sayac.MainActivity.1 */
-    class C01521 implements View.OnClickListener {
-        C01521() {
-        }
-
-        public void onClick(View v) {
-
-            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
-
-        }
-    }
-
-    /* renamed from: com.example.ibrhm.sayac.MainActivity.2 */
-    class C01532 implements View.OnClickListener {
-        C01532() {
-        }
-
-        public void onClick(View v) {
-            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
-            BackGroundServices trial=new BackGroundServices();
-
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,12 +29,33 @@ public class MainActivity extends AppCompatActivity {
         this.start = (Button) findViewById(R.id.button);
         this.stop = (Button) findViewById(R.id.button2);
         this.textView = (TextView) findViewById(R.id.textView);
-        this.start.setOnClickListener(new C01521());
-        this.stop.setOnClickListener(new C01532());
+        this.start.setOnClickListener(new Start());
+        this.stop.setOnClickListener(new Close());
+        database=new Database(this);
         if(!checkAndRequestPermissions())
             return;
+
+
     }
 
+
+    class Start implements View.OnClickListener {
+        Start() {
+        }
+
+        public void onClick(View v) {
+            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+        }
+    }
+
+    class Close implements View.OnClickListener {
+        Close() {
+        }
+
+        public void onClick(View v) {
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+        }
+    }
  private boolean checkAndRequestPermissions() {
         int permissionINTERNET = ContextCompat.checkSelfPermission(this, android.Manifest.permission.INTERNET);
         int permissionACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_NETWORK_STATE);

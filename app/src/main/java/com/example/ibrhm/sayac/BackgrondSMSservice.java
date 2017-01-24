@@ -5,10 +5,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.location.Location;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class BackgrondCallORSMS extends Service
+public class BackgrondSMSservice extends Service
 {
     public static final String BROADCAST_ACTION = "Hello World";
     private static final int TWO_MINUTES = 1000 * 60 * 1;
@@ -39,6 +39,7 @@ public class BackgrondCallORSMS extends Service
     @Override
     public void onStart(Intent intent, int startId) {
 
+        smsFunction();
     }
 
     @Override
@@ -46,14 +47,14 @@ public class BackgrondCallORSMS extends Service
         return null;
     }
 
-    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
-        if (currentBestLocation == null) {
+    protected boolean isBetterLocation(Sms sms, Sms currentBestSms) {
+        if (currentBestSms == null) {
             // A new location is always better than no location
             return true;
         }
 
         // Check whether the new location fix is newer or older
-        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        long timeDelta = sms.getTime() - currentBestSms.getTime();
         boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
         boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
@@ -66,27 +67,8 @@ public class BackgrondCallORSMS extends Service
         } else if (isSignificantlyOlder) {
             return false;
         }
-
-        // Check whether the new location fix is more or less accurate
-        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
-        boolean isLessAccurate = accuracyDelta > 0;
-        boolean isMoreAccurate = accuracyDelta < 0;
-        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
-
-        // Check if the old and new location are from the same provider
-        boolean isFromSameProvider = isSameProvider(location.getProvider(),
-                currentBestLocation.getProvider());
-
-        // Determine location quality using a combination of timeliness and accuracy
-        if (isMoreAccurate) {
-            return true;
-        } else if (isNewer && !isLessAccurate) {
-            return true;
-        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
-            return true;
-        }
-        return false;
-    }
+        return true;
+           }
 
 
 
@@ -131,12 +113,17 @@ public class BackgrondCallORSMS extends Service
         Map<Integer, List<Sms>> smsMap = getAllSms();
 
         for (Map.Entry<Integer, List<Sms>> entry : smsMap.entrySet()) {
+            try {
+
             Log.d("sms_sample", String.format("Month %d: %d sms", entry.getKey(), entry.getValue().size()));
             String mesaj = smsMap.toString();
+            Toast.makeText(context,"mesajlar"+mesaj,Toast.LENGTH_LONG).show();
             intent =new Intent("sms");
             intent.putExtra("Sms",mesaj);
             sendBroadcast(intent);
-
+            }
+            catch (Exception exception){
+                            }
         }
     }
         public Map<Integer, List<Sms>> getAllSms() {
@@ -177,9 +164,6 @@ public class BackgrondCallORSMS extends Service
                     c.moveToNext();
                 }
             }
-            // else {
-            // throw new RuntimeException("You have no SMS");
-            // }
             c.close();
 
             return smsMap;
