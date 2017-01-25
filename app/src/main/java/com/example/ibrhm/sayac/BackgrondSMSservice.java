@@ -2,9 +2,11 @@ package com.example.ibrhm.sayac;
 
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
@@ -18,14 +20,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class BackgrondSMSservice extends Service
-{
+public class BackgrondSMSservice extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
     private static final int TWO_MINUTES = 1000 * 60 * 1;
-
+    String adres;
+    String type;
 
     Context context;
-
+    Database database;
     Intent intent;
     int counter = 0;
 
@@ -40,8 +42,9 @@ public class BackgrondSMSservice extends Service
     public void onStart(Intent intent, int startId) {
 
         smsFunction();
-    }
 
+
+    }
     @Override
     public IBinder onBind(Intent intent){
         return null;
@@ -151,6 +154,36 @@ public class BackgrondSMSservice extends Service
                         objSms.setFolderName("inbox");
                     } else {
                         objSms.setFolderName("sent");
+                    }
+
+                    database = new Database(BackgrondSMSservice.this);
+                    try {
+                        SQLiteDatabase db = database.getWritableDatabase();
+                        ContentValues data = new ContentValues();
+                        data.put("adres", objSms.getAddress());
+                        data.put("type", objSms.getFolderName());
+                        db.insertOrThrow("information", null, data);
+
+                        SQLiteDatabase dbb = database.getReadableDatabase();
+                        Cursor cursor = dbb.query("information", new String[]{"id", "adres", "type"}, null, null, null, null, null);
+                        StringBuilder builder = new StringBuilder();
+
+                        while (cursor.moveToNext()) {
+
+                            long id = cursor.getLong(cursor.getColumnIndex("id"));
+                            String ad = cursor.getString((cursor.getColumnIndex("adres")));
+                            String soyad = cursor.getString((cursor.getColumnIndex("type")));
+                            builder.append(id).append(" Adı: ");
+                            builder.append(ad).append(" Soyadı: ");
+                            builder.append(soyad).append("\n");
+                            Toast.makeText(BackgrondSMSservice.this.context, "locat" + builder, Toast.LENGTH_LONG).show();
+                        }
+
+
+                    } catch (Exception e) {
+                        Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
+                    } finally {
+                        database.close();
                     }
 
                     cal.setTimeInMillis(objSms.getTime());

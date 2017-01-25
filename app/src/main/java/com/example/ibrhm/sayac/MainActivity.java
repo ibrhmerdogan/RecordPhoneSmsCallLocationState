@@ -17,9 +17,13 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS =1905 ;
     Button start;
+    String x = "a";
+    String y = "b";
+
     Button stop;
     TextView textView;
-    Button Open,Close;
+    Button Open, Close, display;
+    CStateDbOperation operation;
     Database database;
 
     @Override
@@ -28,12 +32,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView((int) R.layout.activity_main);
         this.start = (Button) findViewById(R.id.button);
         this.stop = (Button) findViewById(R.id.button2);
-        this.textView = (TextView) findViewById(R.id.textView);
+        display = (Button) findViewById(R.id.button3);
+        textView = (TextView) findViewById(R.id.textView2);
         this.start.setOnClickListener(new Start());
         this.stop.setOnClickListener(new Close());
-        database=new Database(this);
+
         if(!checkAndRequestPermissions())
             return;
+
+
+        display.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
 
 
     }
@@ -44,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
+
         }
     }
 
@@ -53,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
         }
     }
  private boolean checkAndRequestPermissions() {

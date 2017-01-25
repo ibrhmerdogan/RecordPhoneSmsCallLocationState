@@ -141,11 +141,9 @@ public class CallStateService extends Service {
                 sb.append("CallType:" + callTypeStr);
                 sb.append("****************");
               //  sb.append(System.getProperty("line.seperator"));
-                try{
-                 operation.recordAdd(pnumber,date1,callduration,callTypeStr);
-                }catch (Exception e) {
-                    Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
-                }
+
+                Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
+
             }
         }
 
