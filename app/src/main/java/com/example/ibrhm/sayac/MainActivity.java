@@ -1,8 +1,11 @@
 package com.example.ibrhm.sayac;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,14 +20,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS =1905 ;
     Button start;
-    String x = "a";
-    String y = "b";
-
     Button stop;
+    Context context;
     TextView textView;
     Button Open, Close, display;
-    CStateDbOperation operation;
-    Database database;
+    SmsDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +40,33 @@ public class MainActivity extends AppCompatActivity {
         if(!checkAndRequestPermissions())
             return;
 
+        database = new SmsDatabase(this);
 
         display.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                try {
 
 
+                    SQLiteDatabase db = database.getReadableDatabase();
+                    Cursor cursor = db.query("informationDB", new String[]{"id", "smsID", "type"}, null, null, null, null, null);
+                    StringBuilder builder = new StringBuilder();
+                    while (cursor.moveToNext()) {
+
+                        long id = cursor.getLong(cursor.getColumnIndex("id"));
+                        String ad = cursor.getString((cursor.getColumnIndex("smsID")));
+                        String soyad = cursor.getString((cursor.getColumnIndex("type")));
+                        builder.append(id).append(" Adı: ");
+                        builder.append(ad).append(" Soyadı: ");
+                        builder.append(soyad).append("\n");
+
+                    }
+                    textView.setText(builder);
+                } catch (Exception e) {
+                    textView.setText("" + e);
+                } finally {
+                    database.close();
+                }
             }
         });
 
@@ -58,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
+            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), BackgrondSMSservice.class));
 
         }
     }
@@ -68,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), BackGroundServices.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), BackgrondSMSservice.class));
         }
     }
  private boolean checkAndRequestPermissions() {

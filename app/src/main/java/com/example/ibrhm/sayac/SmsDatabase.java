@@ -5,20 +5,21 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * Created by ibrhm on 24.01.2017.
+ * Created by ibrhm on 25.01.2017.
  */
 
-public class Database extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME   = "CallStateDB";
+public class SmsDatabase extends SQLiteOpenHelper {
+    static final String DATABASE_NAME = "SMSDATt";
     // Contacts table name
     private static final String TABLE_COUNTRIES = "informationDB";
-    public Database(Context context) {
+
+    public SmsDatabase(Context context) {
         super(context, DATABASE_NAME, null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE information (id INTEGER PRIMARY KEY AUTOINCREMENT,langitute TEXT,longitute TEXT);");
+        db.execSQL("CREATE TABLE informationDB (id INTEGER PRIMARY KEY AUTOINCREMENT,smsID TEXT,type TEXT);");
     }
 
     @Override

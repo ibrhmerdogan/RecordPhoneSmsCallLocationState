@@ -12,11 +12,15 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.services.Sms;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 
 
@@ -25,19 +29,20 @@ public class BackgrondSMSservice extends Service {
     private static final int TWO_MINUTES = 1000 * 60 * 1;
     String adres;
     String type;
-
+    Cursor cursor2 = null;
     Context context;
-    Database database;
+    SmsDatabase smsDatabase;
     Intent intent;
     int counter = 0;
+    Timer timer;
 
     @Override
     public void onCreate() {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
         context=this;
-    }
 
+    }
     @Override
     public void onStart(Intent intent, int startId) {
 
@@ -45,37 +50,25 @@ public class BackgrondSMSservice extends Service {
 
 
     }
+
+    public void again() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {  //her 60 sn de bir bildirimGonder(); metodu çağırılır.
+            @Override
+            public void run() {
+                smsFunction();
+            }
+
+        }, 0, 60000);
+    }
     @Override
     public IBinder onBind(Intent intent){
         return null;
     }
 
-    protected boolean isBetterLocation(Sms sms, Sms currentBestSms) {
-        if (currentBestSms == null) {
-            // A new location is always better than no location
-            return true;
-        }
-
-        // Check whether the new location fix is newer or older
-        long timeDelta = sms.getTime() - currentBestSms.getTime();
-        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
-        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
-        boolean isNewer = timeDelta > 0;
-
-        // If it's been more than two minutes since the current location, use the new location
-        // because the user has likely moved
-        if (isSignificantlyNewer) {
-            return true;
-            // If the new location is more than two minutes older, it must be worse
-        } else if (isSignificantlyOlder) {
-            return false;
-        }
-        return true;
-           }
-
-
-
-    /** Checks whether two providers are the same */
+    /**
+     * Checks whether two providers are the same
+     */
     private boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {
             return provider2 == null;
@@ -91,6 +84,8 @@ public class BackgrondSMSservice extends Service {
         super.onDestroy();
         Log.v("STOP_SERVICE", "DONE");
         //noinspection MissingPermission
+
+
 
     }
 
@@ -120,7 +115,7 @@ public class BackgrondSMSservice extends Service {
 
             Log.d("sms_sample", String.format("Month %d: %d sms", entry.getKey(), entry.getValue().size()));
             String mesaj = smsMap.toString();
-            Toast.makeText(context,"mesajlar"+mesaj,Toast.LENGTH_LONG).show();
+                //Toast.makeText(context,"mesajlar"+mesaj,Toast.LENGTH_LONG).show();
             intent =new Intent("sms");
             intent.putExtra("Sms",mesaj);
             sendBroadcast(intent);
@@ -156,34 +151,47 @@ public class BackgrondSMSservice extends Service {
                         objSms.setFolderName("sent");
                     }
 
-                    database = new Database(BackgrondSMSservice.this);
+                    smsDatabase = new SmsDatabase(BackgrondSMSservice.this);
                     try {
-                        SQLiteDatabase db = database.getWritableDatabase();
-                        ContentValues data = new ContentValues();
-                        data.put("adres", objSms.getAddress());
-                        data.put("type", objSms.getFolderName());
-                        db.insertOrThrow("information", null, data);
 
-                        SQLiteDatabase dbb = database.getReadableDatabase();
-                        Cursor cursor = dbb.query("information", new String[]{"id", "adres", "type"}, null, null, null, null, null);
-                        StringBuilder builder = new StringBuilder();
+                        Cursor cursor;
 
-                        while (cursor.moveToNext()) {
+                        try {
+                            SQLiteDatabase db1 = smsDatabase.getReadableDatabase();
 
-                            long id = cursor.getLong(cursor.getColumnIndex("id"));
-                            String ad = cursor.getString((cursor.getColumnIndex("adres")));
-                            String soyad = cursor.getString((cursor.getColumnIndex("type")));
-                            builder.append(id).append(" Adı: ");
-                            builder.append(ad).append(" Soyadı: ");
-                            builder.append(soyad).append("\n");
-                            Toast.makeText(BackgrondSMSservice.this.context, "locat" + builder, Toast.LENGTH_LONG).show();
+                            cursor2 = db1.query("informationDB", new String[]{"id", "smsID", "type"}, "smsID=" + String.valueOf(objSms.getId()), null, null, null, null);
+                            cursor2.moveToFirst();
+
+                        } catch (java.lang.IllegalArgumentException e) {
+                            Toast.makeText(context, "hata course" + e, Toast.LENGTH_LONG).show();
                         }
 
+
+                        if (cursor2.getCount() == 0) {
+
+                            Toast.makeText(context, "not same smsID", Toast.LENGTH_LONG).show();
+                            try {
+
+
+                                SQLiteDatabase db = smsDatabase.getWritableDatabase();
+                                ContentValues data = new ContentValues();
+                                data.put("smsID", objSms.getId());
+                                data.put("type", objSms.getFolderName());
+                                db.insertOrThrow("informationDB", null, data);
+                            } catch (Exception e) {
+                                Toast.makeText(context, "hatatt" + e, Toast.LENGTH_LONG).show();
+                            }
+
+
+                        } else {
+                            cursor2 = null;
+                            Toast.makeText(context, "same id", Toast.LENGTH_LONG).show();
+                        }
 
                     } catch (Exception e) {
                         Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
                     } finally {
-                        database.close();
+                        smsDatabase.close();
                     }
 
                     cal.setTimeInMillis(objSms.getTime());
@@ -202,6 +210,18 @@ public class BackgrondSMSservice extends Service {
             return smsMap;
         }
 
+    public int getRowCount() {
+        // Bu method bu uygulamada kullanılmıyor ama her zaman lazım olabilir.Tablodaki row sayısını geri döner.
+        //Login uygulamasında kullanacağız
+        String countQuery = "SELECT  * FROM " + "informationDB";
+        SQLiteDatabase db = smsDatabase.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        int rowCount = cursor.getCount();
+        db.close();
+        cursor.close();
+        // return row count
+        return rowCount;
+    }
 
 
 

@@ -1,4 +1,4 @@
-package com.example.ibrhm.sayac;
+package com.example.ibrhm.sayac.services;
 
 
 import android.app.Service;
@@ -15,20 +15,22 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.Data.LocDatabase;
+
 public class BackGroundServices extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
     private static final int TWO_MINUTES = 6000;
-    Database database;
+    LocDatabase locDatabase;
     String langitute = "ll";
     String longitute = "dsf";
     Context context;
     int counter;
     Intent intent;
-    public com.example.ibrhm.sayac.BackGroundServices.MyLocationListener listener;
+    public BackGroundServices.MyLocationListener listener;
     public LocationManager locationManager;
     public Location previousBestLocation;
 
-    /* renamed from: com.example.ibrhm.sayac.BackGroundServices.1 */
+    /* renamed from: com.example.ibrhm.sayac.services.BackGroundServices.1 */
     static class C01511 extends Thread {
         final /* synthetic */ Runnable val$runnable;
 
@@ -44,19 +46,17 @@ public class BackGroundServices extends Service {
     public class MyLocationListener implements LocationListener {
         public void onLocationChanged(Location loc) {
             Log.i("**********", "Location changed");
-            if (com.example.ibrhm.sayac.BackGroundServices.this.isBetterLocation(loc, com.example.ibrhm.sayac.BackGroundServices.this.previousBestLocation)) {
+            if (BackGroundServices.this.isBetterLocation(loc, BackGroundServices.this.previousBestLocation)) {
                 loc.getLatitude();
                 loc.getLongitude();
-                Toast.makeText(com.example.ibrhm.sayac.BackGroundServices.this.context, "Latitude" + loc.getLatitude() + "\nLongitude" + loc.getLongitude(), Toast.LENGTH_LONG).show();
-
+                Toast.makeText(BackGroundServices.this.context, "Latitude" + loc.getLatitude() + "\nLongitude" + loc.getLongitude(), Toast.LENGTH_LONG).show();
                 Intent intentt = new Intent("location_update");
-
                 intentt.putExtra("coordinates", loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
                 longitute = String.valueOf(loc.getLongitude());
                 langitute = String.valueOf(loc.getLatitude());
                 try {
-                    SQLiteDatabase db = database.getWritableDatabase();
+                    SQLiteDatabase db = locDatabase.getWritableDatabase();
                     ContentValues data = new ContentValues();
                     data.put("langitute", langitute);
                     data.put("longitute", longitute);
@@ -67,11 +67,11 @@ public class BackGroundServices extends Service {
             }
 
         public void onProviderDisabled(String provider) {
-            Toast.makeText(com.example.ibrhm.sayac.BackGroundServices.this.getApplicationContext(), "Gps Disabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(BackGroundServices.this.getApplicationContext(), "Gps Disabled", Toast.LENGTH_LONG).show();
         }
 
         public void onProviderEnabled(String provider) {
-            Toast.makeText(com.example.ibrhm.sayac.BackGroundServices.this.getApplicationContext(), "Gps Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(BackGroundServices.this.getApplicationContext(), "Gps Enabled", Toast.LENGTH_LONG).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -90,17 +90,17 @@ public class BackGroundServices extends Service {
         }
 
     public void onStart(Intent intent, int startId) {
-        this.locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        this.listener = new com.example.ibrhm.sayac.BackGroundServices.MyLocationListener();
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        listener = new BackGroundServices.MyLocationListener();
         //noinspection MissingPermission
-        this.locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
         //noinspection MissingPermission
-        this.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
-        database = new Database(BackGroundServices.this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
+        locDatabase = new LocDatabase(BackGroundServices.this);
         try {
 
 
-            SQLiteDatabase dbb = database.getReadableDatabase();
+            SQLiteDatabase dbb = locDatabase.getReadableDatabase();
             Cursor cursor = dbb.query("information", new String[]{"id", "langitute", "longitute"}, null, null, null, null, null);
             StringBuilder builder = new StringBuilder();
 
@@ -119,7 +119,7 @@ public class BackGroundServices extends Service {
         } catch (Exception e) {
             Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
         } finally {
-            database.close();
+            locDatabase.close();
         }
         }
 
@@ -174,7 +174,7 @@ public class BackGroundServices extends Service {
     }
 
     public static Thread performOnBackgroundThread(Runnable runnable) {
-        Thread t = new com.example.ibrhm.sayac.BackGroundServices.C01511(runnable);
+        Thread t = new BackGroundServices.C01511(runnable);
         t.start();
         return t;
     }

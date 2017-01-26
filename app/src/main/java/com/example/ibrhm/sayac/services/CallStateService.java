@@ -1,4 +1,4 @@
-package com.example.ibrhm.sayac;
+package com.example.ibrhm.sayac.services;
 
 import android.app.Activity;
 import android.app.Service;
@@ -12,6 +12,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.Data.CStateDbOperation;
+
 import java.util.Date;
 
 /**
@@ -21,7 +23,7 @@ import java.util.Date;
 public class CallStateService extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
     private static final int TWO_MINUTES = 1000 * 60 * 1;
-    private  CStateDbOperation operation;
+    private CStateDbOperation operation;
     Context context;
     Intent intent;
     int counter = 0;

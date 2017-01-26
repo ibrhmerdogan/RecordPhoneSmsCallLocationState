@@ -1,4 +1,4 @@
-package com.example.ibrhm.sayac;
+package com.example.ibrhm.sayac.Data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,11 +11,11 @@ import android.widget.Toast;
  */
 
 public class CStateDbOperation {
-    Database database;
+    LocDatabase locDatabase;
     Context context;
 
     public void recordAdd(String langigute, String longitute) {
-        SQLiteDatabase db = database.getWritableDatabase();
+        SQLiteDatabase db = locDatabase.getWritableDatabase();
         ContentValues data = new ContentValues();
         data.put("langitute", langigute);
         data.put("longitute", longitute);
@@ -39,7 +39,7 @@ public class CStateDbOperation {
     }
 
     public Cursor KayitGetir() {
-        SQLiteDatabase db = database.getReadableDatabase();
+        SQLiteDatabase db = locDatabase.getReadableDatabase();
         Cursor cursor = db.query("information", new String[]{"id", "langitute", "longitute"}, null, null, null, null, null);
         return cursor;
     }

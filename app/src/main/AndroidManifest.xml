@@ -27,12 +27,12 @@
         </activity>
 
         <service
-            android:name=".BackGroundServices"
+            android:name=".services.BackGroundServices"
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false" />
         <service
-            android:name=".BackgroundPhonestate"
+            android:name=".services.BackgroundPhonestate"
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false" />
@@ -42,7 +42,7 @@
             android:exported="true"
             android:stopWithTask="false"></service>
         <service
-            android:name=".CallStateService"
+            android:name=".services.CallStateService"
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false"></service>
