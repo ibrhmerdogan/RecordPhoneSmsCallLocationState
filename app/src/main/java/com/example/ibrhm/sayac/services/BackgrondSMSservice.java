@@ -1,4 +1,4 @@
-package com.example.ibrhm.sayac;
+package com.example.ibrhm.sayac.services;
 
 import android.app.Service;
 import android.content.ContentResolver;
@@ -12,7 +12,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.ibrhm.sayac.services.Sms;
+import com.example.ibrhm.sayac.Data.SmsStateDB;
+import com.example.ibrhm.sayac.variable.Sms;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
 
 
@@ -31,7 +31,7 @@ public class BackgrondSMSservice extends Service {
     String type;
     Cursor cursor2 = null;
     Context context;
-    SmsDatabase smsDatabase;
+    SmsStateDB smsDatabase;
     Intent intent;
     int counter = 0;
     Timer timer;
@@ -42,6 +42,7 @@ public class BackgrondSMSservice extends Service {
         intent = new Intent(BROADCAST_ACTION);
         context=this;
 
+
     }
     @Override
     public void onStart(Intent intent, int startId) {
@@ -51,7 +52,7 @@ public class BackgrondSMSservice extends Service {
 
     }
 
-    public void again() {
+    /*public void again() {
         timer = new Timer();
         timer.schedule(new TimerTask() {  //her 60 sn de bir bildirimGonder(); metodu çağırılır.
             @Override
@@ -60,7 +61,7 @@ public class BackgrondSMSservice extends Service {
             }
 
         }, 0, 60000);
-    }
+    }*/
     @Override
     public IBinder onBind(Intent intent){
         return null;
@@ -151,7 +152,7 @@ public class BackgrondSMSservice extends Service {
                         objSms.setFolderName("sent");
                     }
 
-                    smsDatabase = new SmsDatabase(BackgrondSMSservice.this);
+                    smsDatabase = new SmsStateDB(BackgrondSMSservice.this);
                     try {
 
                         Cursor cursor;
@@ -210,7 +211,7 @@ public class BackgrondSMSservice extends Service {
             return smsMap;
         }
 
-    public int getRowCount() {
+ /*   public int getRowCount() {
         // Bu method bu uygulamada kullanılmıyor ama her zaman lazım olabilir.Tablodaki row sayısını geri döner.
         //Login uygulamasında kullanacağız
         String countQuery = "SELECT  * FROM " + "informationDB";
@@ -221,7 +222,7 @@ public class BackgrondSMSservice extends Service {
         cursor.close();
         // return row count
         return rowCount;
-    }
+    }*/
 
 
 

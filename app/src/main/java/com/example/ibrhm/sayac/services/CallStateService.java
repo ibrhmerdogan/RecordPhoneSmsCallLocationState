@@ -2,9 +2,11 @@ package com.example.ibrhm.sayac.services;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.IBinder;
 import android.provider.CallLog;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.CStateDbOperation;
+import com.example.ibrhm.sayac.Data.CallStateDB;
 
 import java.util.Date;
 
@@ -20,13 +23,13 @@ import java.util.Date;
  * Created by ibrhm on 24.01.2017.
  */
 
+@SuppressWarnings("deprecation")
 public class CallStateService extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
-    private static final int TWO_MINUTES = 1000 * 60 * 1;
     private CStateDbOperation operation;
     Context context;
     Intent intent;
-    int counter = 0;
+    CallStateDB database;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -37,40 +40,18 @@ public class CallStateService extends Service {
     public void onCreate() {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
-        context=this;
+        context = this;
+        Call();
     }
 
     @Override
     public void onStart(Intent intent, int startId) {
-
-      Call();
+        Call();
     }
 
-   /* protected boolean isBetterLocation(Call sms, Call currentBestSms) {
-        if (currentBestSms == null) {
-            // A new location is always better than no location
-            return true;
-        }
-
-        // Check whether the new location fix is newer or older
-        long timeDelta = sms.getTime() - currentBestSms.getTime();
-        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
-        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
-        boolean isNewer = timeDelta > 0;
-
-        // If it's been more than two minutes since the current location, use the new location
-        // because the user has likely moved
-        if (isSignificantlyNewer) {
-            return true;
-            // If the new location is more than two minutes older, it must be worse
-        } else if (isSignificantlyOlder) {
-            return false;
-        }
-        return true;
-    }
-*/
-
-    /** Checks whether two providers are the same */
+    /**
+     * Checks whether two providers are the same
+     */
     private boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {
             return provider2 == null;
@@ -89,26 +70,28 @@ public class CallStateService extends Service {
 
     }
 
-    public static Thread performOnBackgroundThread(final Runnable runnable) {
-        final Thread t = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } finally {
+    static class C01511 extends Thread {
+        final /* synthetic */ Runnable val$runnable;
 
-                }
-            }
-        };
+        C01511(Runnable runnable) {
+            this.val$runnable = runnable;
+        }
+
+        public void run() {
+            this.val$runnable.run();
+        }
+    }
+
+    public static Thread performOnBackgroundThread(Runnable runnable) {
+        Thread t = new CallStateService.C01511(runnable);
         t.start();
         return t;
     }
 
-    public void Call(){
+    public void Call() {
 
-
-
-        try ( Cursor cursor1 = managedQuery(CallLog.Calls.CONTENT_URI, null, null, null, null)) {
+        try (Cursor cursor1 = managedQuery(CallLog.Calls.CONTENT_URI, null, null, null, null)) {
+            int id = cursor1.getColumnIndex(CallLog.Calls._ID);
             int number = cursor1.getColumnIndex(CallLog.Calls.NUMBER);
             int date = cursor1.getColumnIndex(CallLog.Calls.DATE);
             int duration = cursor1.getColumnIndex(CallLog.Calls.DURATION);
@@ -117,13 +100,13 @@ public class CallStateService extends Service {
 
             while (cursor1.moveToNext()) {
 
+                int pId = cursor1.getInt(id);
                 String pnumber = cursor1.getString(number);
                 String callduration = cursor1.getString(duration);
                 String calltype = cursor1.getString(type);
                 String calldate = cursor1.getString(date);
 
                 Date date1 = new Date(Long.valueOf(calldate));
-
 
                 String callTypeStr = "";
                 switch (Integer.parseInt(calltype)) {
@@ -137,14 +120,55 @@ public class CallStateService extends Service {
                         callTypeStr = "missedCall";
                         break;
                 }
-                sb.append("PhoneNumber:" + pnumber);
-                sb.append("CallDate:" + date1);
-                sb.append("CallDuration:" + callduration);
-                sb.append("CallType:" + callTypeStr);
-                sb.append("****************");
+
+                database = new CallStateDB(CallStateService.this);
+                try {
+                    Cursor cursor2 = null;
+                    try {
+                        SQLiteDatabase db1 = database.getReadableDatabase();
+
+                        cursor2 = db1.query("informationDB", new String[]{"pID", "phoneNumber"}, "pID=" + pId, null, null, null, null);
+                        cursor2.moveToFirst();
+
+                    } catch (java.lang.IllegalArgumentException e) {
+                        Toast.makeText(context, "hata course" + e, Toast.LENGTH_LONG).show();
+                    }
+
+                    if (cursor2.getCount() == 0) {
+
+                        Toast.makeText(context, "not same smsID", Toast.LENGTH_LONG).show();
+                        try {
+
+
+                            SQLiteDatabase db = database.getWritableDatabase();
+                            ContentValues data = new ContentValues();
+                            data.put("pID", pId);
+                            data.put("phoneNumber", pnumber);
+                            db.insertOrThrow("informationDB", null, data);
+                        } catch (Exception e) {
+                            Toast.makeText(context, "hatatt" + e, Toast.LENGTH_LONG).show();
+                        }
+
+
+                    } else {
+                        cursor2 = null;
+                        Toast.makeText(context, "same id", Toast.LENGTH_LONG).show();
+
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(context, "dış" + e, Toast.LENGTH_LONG).show();
+                } finally {
+                    database.close();
+                }
+                sb.append("pID:" + pId);
+                sb.append("\nPhoneNumber:" + pnumber);
+                sb.append("\nCallDate:" + date1);
+                sb.append("\nCallDuration:" + callduration);
+                sb.append("\nCallType:" + callTypeStr);
+
               //  sb.append(System.getProperty("line.seperator"));
 
-                Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
+                //  Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
 
             }
         }

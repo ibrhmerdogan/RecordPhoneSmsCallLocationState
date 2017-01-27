@@ -13,6 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.ibrhm.sayac.Data.CallStateDB;
+import com.example.ibrhm.sayac.services.CallStateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +27,12 @@ public class MainActivity extends AppCompatActivity {
     Button stop;
     Context context;
     TextView textView;
-    Button Open, Close, display;
-    SmsDatabase database;
+    Button Open, Close;
+    Button display;
+    CallStateDB database;
+
+
+    final static long ZAMAN = 10000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,44 +40,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView((int) R.layout.activity_main);
         this.start = (Button) findViewById(R.id.button);
         this.stop = (Button) findViewById(R.id.button2);
-        display = (Button) findViewById(R.id.button3);
+        display = (Button) findViewById(R.id.button4);
         textView = (TextView) findViewById(R.id.textView2);
+
         this.start.setOnClickListener(new Start());
         this.stop.setOnClickListener(new Close());
 
-        if(!checkAndRequestPermissions())
+
+        database = new CallStateDB(this);
+        display.setOnClickListener(new Display());
+
+
+        if (!checkAndRequestPermissions())
             return;
-
-        database = new SmsDatabase(this);
-
-        display.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-
-
-                    SQLiteDatabase db = database.getReadableDatabase();
-                    Cursor cursor = db.query("informationDB", new String[]{"id", "smsID", "type"}, null, null, null, null, null);
-                    StringBuilder builder = new StringBuilder();
-                    while (cursor.moveToNext()) {
-
-                        long id = cursor.getLong(cursor.getColumnIndex("id"));
-                        String ad = cursor.getString((cursor.getColumnIndex("smsID")));
-                        String soyad = cursor.getString((cursor.getColumnIndex("type")));
-                        builder.append(id).append(" Adı: ");
-                        builder.append(ad).append(" Soyadı: ");
-                        builder.append(soyad).append("\n");
-
-                    }
-                    textView.setText(builder);
-                } catch (Exception e) {
-                    textView.setText("" + e);
-                } finally {
-                    database.close();
-                }
-            }
-        });
-
 
     }
 
@@ -79,9 +62,28 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), BackgrondSMSservice.class));
+            try {
+                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
 
+            } catch (Exception e) {
+                Toast.makeText(context, "main" + e, Toast.LENGTH_LONG).show();
+            }
         }
+    }
+
+    class Display implements View.OnClickListener {
+        Display() {
+        }
+
+        public void onClick(View v) {
+            try {
+                KayitGoster(KayitGetir());
+            } catch (Exception e) {
+                textView.setText("" + e);
+            }
+        }
+
+
     }
 
     class Close implements View.OnClickListener {
@@ -89,8 +91,31 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onClick(View v) {
-            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), BackgrondSMSservice.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
         }
+    }
+
+    public Cursor KayitGetir() {
+        SQLiteDatabase db = database.getReadableDatabase();
+        Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber"}, null, null, null, null, null);
+        return cursor;
+    }
+
+    public void KayitGoster(Cursor cursor) {
+        StringBuilder builder = new StringBuilder();
+
+
+        while (cursor.moveToNext()) {
+
+            int id = cursor.getInt(cursor.getColumnIndex("pID"));
+            String ad = cursor.getString((cursor.getColumnIndex("phoneNumber")));
+            builder.append(id).append(" Adı: ");
+            builder.append(ad).append(" Soyadı: \n");
+
+        }
+
+        textView.setText(builder);
+
     }
  private boolean checkAndRequestPermissions() {
         int permissionINTERNET = ContextCompat.checkSelfPermission(this, android.Manifest.permission.INTERNET);

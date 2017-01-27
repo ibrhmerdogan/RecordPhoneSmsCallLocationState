@@ -11,7 +11,7 @@ import android.widget.Toast;
  */
 
 public class CStateDbOperation {
-    LocDatabase locDatabase;
+    LocationDB locDatabase;
     Context context;
 
     public void recordAdd(String langigute, String longitute) {

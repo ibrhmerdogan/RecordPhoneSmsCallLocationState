@@ -2,11 +2,8 @@ package com.example.ibrhm.sayac.services;
 
 
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,12 +12,12 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.ibrhm.sayac.Data.LocDatabase;
+import com.example.ibrhm.sayac.Data.LocationDB;
 
 public class BackGroundServices extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
     private static final int TWO_MINUTES = 6000;
-    LocDatabase locDatabase;
+    LocationDB locDatabase;
     String langitute = "ll";
     String longitute = "dsf";
     Context context;
@@ -54,15 +51,7 @@ public class BackGroundServices extends Service {
                 intentt.putExtra("coordinates", loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
                 longitute = String.valueOf(loc.getLongitude());
-                langitute = String.valueOf(loc.getLatitude());
-                try {
-                    SQLiteDatabase db = locDatabase.getWritableDatabase();
-                    ContentValues data = new ContentValues();
-                    data.put("langitute", langitute);
-                    data.put("longitute", longitute);
-                    db.insertOrThrow("information", null, data);
-                } catch (Exception e) {
-                }
+
             }
             }
 
@@ -96,12 +85,12 @@ public class BackGroundServices extends Service {
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
         //noinspection MissingPermission
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
-        locDatabase = new LocDatabase(BackGroundServices.this);
-        try {
+        locDatabase = new LocationDB(BackGroundServices.this);
+        /*try {
 
 
             SQLiteDatabase dbb = locDatabase.getReadableDatabase();
-            Cursor cursor = dbb.query("information", new String[]{"id", "langitute", "longitute"}, null, null, null, null, null);
+            Cursor cursor = dbb.query("informationDB", new String[]{"id", "langitute", "longitute"}, null, null, null, null, null);
             StringBuilder builder = new StringBuilder();
 
             while (cursor.moveToNext()) {
@@ -120,7 +109,7 @@ public class BackGroundServices extends Service {
             Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
         } finally {
             locDatabase.close();
-        }
+        }*/
         }
 
     public IBinder onBind(Intent intent) {

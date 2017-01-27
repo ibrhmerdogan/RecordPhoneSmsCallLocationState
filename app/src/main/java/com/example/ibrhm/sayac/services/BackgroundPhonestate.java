@@ -28,6 +28,7 @@ public class BackgroundPhonestate extends Service
         intentt = new Intent(BROADCAST_ACTION);
         context=this;
 
+
     }
 
     @Override
@@ -75,14 +76,11 @@ public class BackgroundPhonestate extends Service
     public void onCallStateChanged ( int state, String incomingNumber){
         String stateString = "N/A";
         switch (state) {
-            case TelephonyManager.CALL_STATE_IDLE:
-                stateString = "Idle";
+            case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+                stateString = "unknowType";
                 break;
-            case TelephonyManager.CALL_STATE_OFFHOOK:
-                stateString = "Off Hook";
-                break;
-            case TelephonyManager.CALL_STATE_RINGING:
-                stateString = "Ringing";
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+                stateString = "Type";
                 break;
         }
         Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();
