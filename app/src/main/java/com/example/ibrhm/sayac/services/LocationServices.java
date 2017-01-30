@@ -2,8 +2,11 @@ package com.example.ibrhm.sayac.services;
 
 
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,7 +16,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.LocationDB;
+import com.example.ibrhm.sayac.Data.SmsStateDB;
 import com.example.ibrhm.sayac.variable.LocationVeriable;
+
+import java.util.Date;
 
 public class LocationServices extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
@@ -21,6 +27,10 @@ public class LocationServices extends Service {
     Context context;
     LocationDB locationDB;
     int counter;
+    String adres;
+    String type;
+    Cursor cursor2 = null;
+    SmsStateDB smsDatabase;
     LocationVeriable locationVeriable;
     Intent intent;
     public LocationServices.MyLocationListener listener;
@@ -44,22 +54,31 @@ public class LocationServices extends Service {
         public void onLocationChanged(Location loc) {
             Log.i("**********", "Location changed");
             if (LocationServices.this.isBetterLocation(loc, LocationServices.this.previousBestLocation)) {
+                try {
+                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), BackgrondSMSservice.class));
+                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
+                } catch (Exception e) {
+                    Toast.makeText(context, "class" + e, Toast.LENGTH_LONG).show();
+                } finally {
+                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), BackgrondSMSservice.class));
+                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
+                }
                 loc.getLatitude();
                 loc.getLongitude();
+
                 Toast.makeText(LocationServices.this.context, "Latitude", Toast.LENGTH_LONG).show();
                 Intent intentt = new Intent("location_update");
                 intentt.putExtra("coordinates", +loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
-              /*  locationDB=new LocationDB(LocationServices.this.context);
+                locationDB = new LocationDB(LocationServices.this.context);
                 SQLiteDatabase db = locationDB.getReadableDatabase();
                 ContentValues data = new ContentValues();
                 Date date=new Date();
-                locationVeriable.setDate(date.toString());
-                data.put("date",locationVeriable.getDate());
-                data.put("langitute",locationVeriable.getLangitute());
+                data.put("date", date.toString());
+                data.put("langitute", loc.getLatitude());
                 data.put("longitute",loc.getLongitude());
                 db.insertOrThrow("informationDB", null, data);
-*/
+
 
             }
             }
@@ -90,10 +109,11 @@ public class LocationServices extends Service {
     public void onStart(Intent intent, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new LocationServices.MyLocationListener();
+
         //noinspection MissingPermission
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TWO_MINUTES, 0, this.listener);
         //noinspection MissingPermission
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TWO_MINUTES, 0, this.listener);
         }
 
     public IBinder onBind(Intent intent) {
@@ -151,4 +171,5 @@ public class LocationServices extends Service {
         t.start();
         return t;
     }
-    }
+
+}
