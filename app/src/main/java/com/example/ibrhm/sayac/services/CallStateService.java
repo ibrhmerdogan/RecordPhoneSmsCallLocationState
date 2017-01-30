@@ -14,8 +14,9 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.ibrhm.sayac.Data.CStateDbOperation;
+import com.example.ibrhm.sayac.Data.DbOperations.CallDBOperations;
 import com.example.ibrhm.sayac.Data.CallStateDB;
+import com.example.ibrhm.sayac.variable.CallStateVeriable;
 
 import java.util.Date;
 
@@ -26,10 +27,11 @@ import java.util.Date;
 @SuppressWarnings("deprecation")
 public class CallStateService extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
-    private CStateDbOperation operation;
+    private CallDBOperations operation;
     Context context;
     Intent intent;
     CallStateDB database;
+    CallStateVeriable callObj = new CallStateVeriable();
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -41,7 +43,7 @@ public class CallStateService extends Service {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
         context = this;
-        Call();
+        //Call();
     }
 
     @Override
@@ -91,6 +93,7 @@ public class CallStateService extends Service {
     public void Call() {
 
         try (Cursor cursor1 = managedQuery(CallLog.Calls.CONTENT_URI, null, null, null, null)) {
+
             int id = cursor1.getColumnIndex(CallLog.Calls._ID);
             int number = cursor1.getColumnIndex(CallLog.Calls.NUMBER);
             int date = cursor1.getColumnIndex(CallLog.Calls.DATE);
@@ -100,16 +103,16 @@ public class CallStateService extends Service {
 
             while (cursor1.moveToNext()) {
 
-                int pId = cursor1.getInt(id);
-                String pnumber = cursor1.getString(number);
-                String callduration = cursor1.getString(duration);
-                String calltype = cursor1.getString(type);
+                callObj.set_id(cursor1.getInt(id));
+                callObj.setpNumber(cursor1.getString(number));
+                callObj.setCallDuration(cursor1.getString(duration));
+                callObj.setCallType(cursor1.getString(type));
                 String calldate = cursor1.getString(date);
 
                 Date date1 = new Date(Long.valueOf(calldate));
-
+                callObj.setCallDate(date1);
                 String callTypeStr = "";
-                switch (Integer.parseInt(calltype)) {
+                switch (Integer.parseInt(callObj.getCallType())) {
                     case CallLog.Calls.OUTGOING_TYPE:
                         callTypeStr = "OutgoingCall";
                         break;
@@ -127,7 +130,7 @@ public class CallStateService extends Service {
                     try {
                         SQLiteDatabase db1 = database.getReadableDatabase();
 
-                        cursor2 = db1.query("informationDB", new String[]{"pID", "phoneNumber"}, "pID=" + pId, null, null, null, null);
+                        cursor2 = db1.query("informationDB", new String[]{"pID", "phoneNumber"}, "pID=" + callObj.get_id(), null, null, null, null);
                         cursor2.moveToFirst();
 
                     } catch (java.lang.IllegalArgumentException e) {
@@ -142,8 +145,11 @@ public class CallStateService extends Service {
 
                             SQLiteDatabase db = database.getWritableDatabase();
                             ContentValues data = new ContentValues();
-                            data.put("pID", pId);
-                            data.put("phoneNumber", pnumber);
+                            data.put("pID", callObj.get_id());
+                            data.put("phoneNumber", callObj.getpNumber());
+                            data.put("callDate", String.valueOf(callObj.getCallDate()));
+                            data.put("callDuration", callObj.getCallDuration());
+                            data.put("callType", callObj.getCallType());
                             db.insertOrThrow("informationDB", null, data);
                         } catch (Exception e) {
                             Toast.makeText(context, "hatatt" + e, Toast.LENGTH_LONG).show();
@@ -160,11 +166,11 @@ public class CallStateService extends Service {
                 } finally {
                     database.close();
                 }
-                sb.append("pID:" + pId);
-                sb.append("\nPhoneNumber:" + pnumber);
-                sb.append("\nCallDate:" + date1);
-                sb.append("\nCallDuration:" + callduration);
-                sb.append("\nCallType:" + callTypeStr);
+                sb.append("pID:" + callObj.get_id());
+                sb.append("\nPhoneNumber:" + callObj.getpNumber());
+                sb.append("\nCallDate:" + callObj.getCallDate());
+                sb.append("\nCallDuration:" + callObj.getCallDuration());
+                sb.append("\nCallType:" + callObj.getCallType());
 
               //  sb.append(System.getProperty("line.seperator"));
 

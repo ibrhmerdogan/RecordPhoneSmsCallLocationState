@@ -19,7 +19,7 @@ public class CallStateDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE informationDB (pID INTEGER PRIMARY KEY ,phoneNumber TEXT);");
+        db.execSQL("CREATE TABLE informationDB (pID INTEGER PRIMARY KEY ,phoneNumber TEXT,callDate TEXT,callDuration REAL,callType TEXT);");
     }
 
     @Override

@@ -13,21 +13,21 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.LocationDB;
+import com.example.ibrhm.sayac.variable.LocationVeriable;
 
-public class BackGroundServices extends Service {
+public class LocationServices extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
-    private static final int TWO_MINUTES = 6000;
-    LocationDB locDatabase;
-    String langitute = "ll";
-    String longitute = "dsf";
+    private static final int TWO_MINUTES = 120000;
     Context context;
+    LocationDB locationDB;
     int counter;
+    LocationVeriable locationVeriable;
     Intent intent;
-    public BackGroundServices.MyLocationListener listener;
+    public LocationServices.MyLocationListener listener;
     public LocationManager locationManager;
     public Location previousBestLocation;
 
-    /* renamed from: com.example.ibrhm.sayac.services.BackGroundServices.1 */
+    /* renamed from: com.example.ibrhm.sayac.services.LocationServices.1 */
     static class C01511 extends Thread {
         final /* synthetic */ Runnable val$runnable;
 
@@ -43,31 +43,40 @@ public class BackGroundServices extends Service {
     public class MyLocationListener implements LocationListener {
         public void onLocationChanged(Location loc) {
             Log.i("**********", "Location changed");
-            if (BackGroundServices.this.isBetterLocation(loc, BackGroundServices.this.previousBestLocation)) {
+            if (LocationServices.this.isBetterLocation(loc, LocationServices.this.previousBestLocation)) {
                 loc.getLatitude();
                 loc.getLongitude();
-                Toast.makeText(BackGroundServices.this.context, "Latitude" + loc.getLatitude() + "\nLongitude" + loc.getLongitude(), Toast.LENGTH_LONG).show();
+                Toast.makeText(LocationServices.this.context, "Latitude", Toast.LENGTH_LONG).show();
                 Intent intentt = new Intent("location_update");
-                intentt.putExtra("coordinates", loc.getLatitude() + " " + loc.getLongitude());
+                intentt.putExtra("coordinates", +loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
-                longitute = String.valueOf(loc.getLongitude());
+              /*  locationDB=new LocationDB(LocationServices.this.context);
+                SQLiteDatabase db = locationDB.getReadableDatabase();
+                ContentValues data = new ContentValues();
+                Date date=new Date();
+                locationVeriable.setDate(date.toString());
+                data.put("date",locationVeriable.getDate());
+                data.put("langitute",locationVeriable.getLangitute());
+                data.put("longitute",loc.getLongitude());
+                db.insertOrThrow("informationDB", null, data);
+*/
 
             }
             }
 
         public void onProviderDisabled(String provider) {
-            Toast.makeText(BackGroundServices.this.getApplicationContext(), "Gps Disabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(LocationServices.this.getApplicationContext(), "Gps Disabled", Toast.LENGTH_LONG).show();
         }
 
         public void onProviderEnabled(String provider) {
-            Toast.makeText(BackGroundServices.this.getApplicationContext(), "Gps Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(LocationServices.this.getApplicationContext(), "Gps Enabled", Toast.LENGTH_LONG).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
         }
 
-    public BackGroundServices() {
+    public LocationServices() {
         this.previousBestLocation = null;
         this.counter = 0;
         }
@@ -80,36 +89,11 @@ public class BackGroundServices extends Service {
 
     public void onStart(Intent intent, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        listener = new BackGroundServices.MyLocationListener();
+        listener = new LocationServices.MyLocationListener();
         //noinspection MissingPermission
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
         //noinspection MissingPermission
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
-        locDatabase = new LocationDB(BackGroundServices.this);
-        /*try {
-
-
-            SQLiteDatabase dbb = locDatabase.getReadableDatabase();
-            Cursor cursor = dbb.query("informationDB", new String[]{"id", "langitute", "longitute"}, null, null, null, null, null);
-            StringBuilder builder = new StringBuilder();
-
-            while (cursor.moveToNext()) {
-
-                long id = cursor.getLong(cursor.getColumnIndex("id"));
-                String ad = cursor.getString((cursor.getColumnIndex("langitute")));
-                String soyad = cursor.getString((cursor.getColumnIndex("longitute")));
-                builder.append(id).append(" Adı: ");
-                builder.append(ad).append(" Soyadı: ");
-                builder.append(soyad).append("\n");
-                Toast.makeText(BackGroundServices.this.context, "locat" + builder, Toast.LENGTH_LONG).show();
-            }
-
-
-        } catch (Exception e) {
-            Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
-        } finally {
-            locDatabase.close();
-        }*/
         }
 
     public IBinder onBind(Intent intent) {
@@ -121,8 +105,8 @@ public class BackGroundServices extends Service {
             return true;
         }
         long timeDelta = location.getTime() - currentBestLocation.getTime();
-        boolean isSignificantlyNewer = timeDelta > 60000;
-        boolean isSignificantlyOlder = timeDelta < -60000;
+        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
+        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
         if (isSignificantlyNewer) {
             return true;
@@ -163,7 +147,7 @@ public class BackGroundServices extends Service {
     }
 
     public static Thread performOnBackgroundThread(Runnable runnable) {
-        Thread t = new BackGroundServices.C01511(runnable);
+        Thread t = new LocationServices.C01511(runnable);
         t.start();
         return t;
     }

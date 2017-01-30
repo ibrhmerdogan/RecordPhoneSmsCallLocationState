@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 public class LocationDB extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME   = "CallStateDB";
+    private static final String DATABASE_NAME = "LocationDB";
     // Contacts table name
     private static final String TABLE_COUNTRIES = "informationDB";
 
@@ -19,7 +19,7 @@ public class LocationDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE informationDB (id INTEGER PRIMARY KEY AUTOINCREMENT,langitute TEXT,longitute TEXT);");
+        db.execSQL("CREATE TABLE informationDB (id INTEGER PRIMARY KEY AUTOINCREMENT,date TEXT,langitute TEXT,longitute TEXT);");
     }
 
     @Override

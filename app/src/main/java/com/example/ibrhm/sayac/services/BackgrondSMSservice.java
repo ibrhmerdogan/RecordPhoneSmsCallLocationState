@@ -13,7 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.SmsStateDB;
-import com.example.ibrhm.sayac.variable.Sms;
+import com.example.ibrhm.sayac.variable.SmsVeriable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -41,15 +41,13 @@ public class BackgrondSMSservice extends Service {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
         context=this;
-
+        // smsFunction();
 
     }
     @Override
     public void onStart(Intent intent, int startId) {
 
         smsFunction();
-
-
     }
 
     /*public void again() {
@@ -109,27 +107,28 @@ public class BackgrondSMSservice extends Service {
 
 
     public void smsFunction() {
-        Map<Integer, List<Sms>> smsMap = getAllSms();
+        Map<Integer, List<SmsVeriable>> smsMap = getAllSms();
 
-        for (Map.Entry<Integer, List<Sms>> entry : smsMap.entrySet()) {
+        for (Map.Entry<Integer, List<SmsVeriable>> entry : smsMap.entrySet()) {
             try {
 
             Log.d("sms_sample", String.format("Month %d: %d sms", entry.getKey(), entry.getValue().size()));
             String mesaj = smsMap.toString();
                 //Toast.makeText(context,"mesajlar"+mesaj,Toast.LENGTH_LONG).show();
             intent =new Intent("sms");
-            intent.putExtra("Sms",mesaj);
+                intent.putExtra("SmsVeriable", mesaj);
             sendBroadcast(intent);
             }
             catch (Exception exception){
                             }
         }
     }
-        public Map<Integer, List<Sms>> getAllSms() {
-            Map<Integer, List<Sms>> smsMap = new TreeMap<Integer, List<Sms>>();
-            Sms objSms = null;
+
+    public Map<Integer, List<SmsVeriable>> getAllSms() {
+        Map<Integer, List<SmsVeriable>> smsMap = new TreeMap<Integer, List<SmsVeriable>>();
+        SmsVeriable objSms = null;
             Uri message = Uri.parse("content://sms/");
-            ContentResolver cr = getContentResolver();
+        ContentResolver cr = getContentResolver();
             Calendar cal = Calendar.getInstance(Locale.ENGLISH);
 
             Cursor c = cr.query(message, null, null, null, null);
@@ -139,7 +138,7 @@ public class BackgrondSMSservice extends Service {
             if (c.moveToFirst()) {
                 for (int i = 0; i < totalSMS; i++) {
 
-                    objSms = new Sms();
+                    objSms = new SmsVeriable();
                     objSms.setId(c.getString(c.getColumnIndexOrThrow("_id")));
                     objSms.setAddress(c.getString(c.getColumnIndexOrThrow("address")));
                     objSms.setMsg(c.getString(c.getColumnIndexOrThrow("body")));
@@ -160,7 +159,7 @@ public class BackgrondSMSservice extends Service {
                         try {
                             SQLiteDatabase db1 = smsDatabase.getReadableDatabase();
 
-                            cursor2 = db1.query("informationDB", new String[]{"id", "smsID", "type"}, "smsID=" + String.valueOf(objSms.getId()), null, null, null, null);
+                            cursor2 = db1.query("informationDB", new String[]{"smsID"}, "smsID=" + String.valueOf(objSms.getId()), null, null, null, null);
                             cursor2.moveToFirst();
 
                         } catch (java.lang.IllegalArgumentException e) {
@@ -177,6 +176,10 @@ public class BackgrondSMSservice extends Service {
                                 SQLiteDatabase db = smsDatabase.getWritableDatabase();
                                 ContentValues data = new ContentValues();
                                 data.put("smsID", objSms.getId());
+                                data.put("address", objSms.getAddress());
+                                data.put("body", objSms.getMsg());
+                                data.put("readState", objSms.getReadState());
+                                data.put("date", objSms.getTime());
                                 data.put("type", objSms.getFolderName());
                                 db.insertOrThrow("informationDB", null, data);
                             } catch (Exception e) {
@@ -199,7 +202,7 @@ public class BackgrondSMSservice extends Service {
                     int month = cal.get(Calendar.MONTH);
 
                     if (!smsMap.containsKey(month))
-                        smsMap.put(month, new ArrayList<Sms>());
+                        smsMap.put(month, new ArrayList<SmsVeriable>());
 
                     smsMap.get(month).add(objSms);
 
@@ -210,6 +213,7 @@ public class BackgrondSMSservice extends Service {
 
             return smsMap;
         }
+
 
  /*   public int getRowCount() {
         // Bu method bu uygulamada kullanılmıyor ama her zaman lazım olabilir.Tablodaki row sayısını geri döner.

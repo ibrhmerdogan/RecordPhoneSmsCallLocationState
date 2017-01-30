@@ -7,7 +7,7 @@ package com.example.ibrhm.sayac.variable;
  */
 
 
-public class Sms {
+public class SmsVeriable {
     private String _id;
     private String _address;
     private String _msg;
@@ -65,7 +65,7 @@ public class Sms {
 
     @Override
     public String toString() {
-        return "Sms{" +
+        return "SmsVeriable{" +
                 "'" + _id + '\'' +
                 ", '" + _address + '\'' +
                 ", '" + _msg + '\'' +

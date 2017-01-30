@@ -1,11 +1,9 @@
-package com.example.ibrhm.sayac;
+package com.example.ibrhm.sayac.Main;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -16,7 +14,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.CallStateDB;
-import com.example.ibrhm.sayac.services.CallStateService;
+import com.example.ibrhm.sayac.Data.DbOperations.LocationDBOperation;
+import com.example.ibrhm.sayac.Data.DbOperations.SmsDBOperations;
+import com.example.ibrhm.sayac.Data.LocationDB;
+import com.example.ibrhm.sayac.Data.SmsStateDB;
+import com.example.ibrhm.sayac.R;
+import com.example.ibrhm.sayac.services.LocationServices;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +33,10 @@ public class MainActivity extends AppCompatActivity {
     Button Open, Close;
     Button display;
     CallStateDB database;
-
-
-    final static long ZAMAN = 10000;
+    SmsStateDB smsStateDB;
+    LocationDB locationDB;
+    SmsDBOperations smsDBOperations;
+    LocationDBOperation locationDBOperation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +46,17 @@ public class MainActivity extends AppCompatActivity {
         this.stop = (Button) findViewById(R.id.button2);
         display = (Button) findViewById(R.id.button4);
         textView = (TextView) findViewById(R.id.textView2);
-
         this.start.setOnClickListener(new Start());
         this.stop.setOnClickListener(new Close());
-
-
+        smsStateDB = new SmsStateDB(this);
         database = new CallStateDB(this);
+        locationDB = new LocationDB(this);
         display.setOnClickListener(new Display());
 
 
-        if (!checkAndRequestPermissions())
+        if (!checkAndRequestPermissions()) {
             return;
+        }
 
     }
 
@@ -63,65 +67,49 @@ public class MainActivity extends AppCompatActivity {
 
         public void onClick(View v) {
             try {
-                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
-
+                //MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(),CallStateService.class));
+                //MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(),BackgrondSMSservice.class));
+                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), LocationServices.class));
             } catch (Exception e) {
-                Toast.makeText(context, "main" + e, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "" + e, Toast.LENGTH_LONG).show();
             }
         }
     }
-
-    class Display implements View.OnClickListener {
-        Display() {
-        }
-
-        public void onClick(View v) {
-            try {
-                KayitGoster(KayitGetir());
-            } catch (Exception e) {
-                textView.setText("" + e);
-            }
-        }
-
-
-    }
-
     class Close implements View.OnClickListener {
         Close() {
         }
 
         public void onClick(View v) {
-            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+            // MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(),CallStateService.class));
+            //
+            // MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(),BackgrondSMSservice.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), LocationServices.class));
         }
     }
 
-    public Cursor KayitGetir() {
-        SQLiteDatabase db = database.getReadableDatabase();
-        Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber"}, null, null, null, null, null);
-        return cursor;
-    }
 
-    public void KayitGoster(Cursor cursor) {
+    class Display implements View.OnClickListener {
+        Display() {
+        }
+
         StringBuilder builder = new StringBuilder();
 
-
-        while (cursor.moveToNext()) {
-
-            int id = cursor.getInt(cursor.getColumnIndex("pID"));
-            String ad = cursor.getString((cursor.getColumnIndex("phoneNumber")));
-            builder.append(id).append(" Adı: ");
-            builder.append(ad).append(" Soyadı: \n");
-
+        public void onClick(View v) {
+            try {
+                locationDBOperation.recordDisplay(locationDB, textView);
+            } catch (Exception e) {
+                Toast.makeText(context, "diplayerror" + e, Toast.LENGTH_LONG).show();
+            }
         }
 
-        textView.setText(builder);
 
     }
- private boolean checkAndRequestPermissions() {
+
+
+    private boolean checkAndRequestPermissions() {
         int permissionINTERNET = ContextCompat.checkSelfPermission(this, android.Manifest.permission.INTERNET);
         int permissionACCESS_NETWORK_STATE = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_NETWORK_STATE);
         int permissionACCESS_FINE_LOCATION = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-        int permissionACCESS_VIBRATE = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG);
         int permissionCAMERA = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS);
         int permissionACCESS_LOCATION_EXTRA_COMMANDS = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS);
         int permissionACCESS_COARSE_LOCATION = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -145,9 +133,7 @@ public class MainActivity extends AppCompatActivity {
         if (permissionCAMERA != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.READ_SMS);
         }
-        if (permissionACCESS_VIBRATE != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.READ_CALL_LOG);
-        }
+
         if (permissionACCESS_COARSE_LOCATION != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
         }

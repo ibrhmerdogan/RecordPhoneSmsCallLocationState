@@ -73,14 +73,21 @@ public class BackgroundPhonestate extends Service
 
     public void state(){
     listenerPhone = new PhoneStateListener() {
-    public void onCallStateChanged ( int state, String incomingNumber){
+        public void onCallStateChanged(int networkType, String incomingNumber) {
         String stateString = "N/A";
-        switch (state) {
-            case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-                stateString = "unknowType";
+            // networkType = telephonyManager.getNetworkType();
+            switch (networkType) {
+                case (TelephonyManager.NETWORK_TYPE_1xRTT):
+                    stateString = "NETWORK_TYPE_1xRTT";
                 break;
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-                stateString = "Type";
+                case (TelephonyManager.NETWORK_TYPE_CDMA):
+                    stateString = "NETWORK_TYPE_CDMA";
+                    break;
+                case (TelephonyManager.NETWORK_TYPE_EDGE):
+                    stateString = "NETWORK_TYPE_EDGE";
+                    break;
+                case (TelephonyManager.NETWORK_TYPE_EVDO_0):
+                    stateString = "NETWORK_TYPE_EVDO_0";
                 break;
         }
         Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();

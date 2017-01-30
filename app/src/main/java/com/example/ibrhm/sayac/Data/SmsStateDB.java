@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 public class SmsStateDB extends SQLiteOpenHelper {
-    static final String DATABASE_NAME = "SMSDATt";
+    static final String DATABASE_NAME = "SMSdataINFO";
     // Contacts table name
     private static final String TABLE_COUNTRIES = "informationDB";
 
@@ -19,7 +19,7 @@ public class SmsStateDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE informationDB (id INTEGER PRIMARY KEY AUTOINCREMENT,smsID INTEGER,type TEXT);");
+        db.execSQL("CREATE TABLE informationDB (smsID  INTEGER PRIMARY KEY,address TEXT,body TEXT,readState TEXT,date TEXT,type TEXT);");
     }
 
     @Override
