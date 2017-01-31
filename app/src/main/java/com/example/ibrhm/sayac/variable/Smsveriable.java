@@ -8,14 +8,14 @@ package com.example.ibrhm.sayac.variable;
 
 
 public class SmsVeriable {
-    private String _id;
+    private int _id;
     private String _address;
     private String _msg;
     private String _readState; //"0" for have not read sms and "1" for have read sms
     private long _time;
     private String _folderName;
 
-    public String getId() {
+    public int getId() {
         return _id;
     }
 
@@ -39,7 +39,7 @@ public class SmsVeriable {
         return _folderName;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         _id = id;
     }
 

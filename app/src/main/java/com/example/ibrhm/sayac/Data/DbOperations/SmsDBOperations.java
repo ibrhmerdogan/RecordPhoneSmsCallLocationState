@@ -1,9 +1,9 @@
 package com.example.ibrhm.sayac.Data.DbOperations;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.TextView;
 
 import com.example.ibrhm.sayac.Data.SmsStateDB;
 
@@ -13,35 +13,40 @@ import com.example.ibrhm.sayac.Data.SmsStateDB;
 
 
 public class SmsDBOperations {
-    SmsStateDB databases;
-    Context context;
 
-    public void recordAdd(String langigute, String longitute) {
-        SQLiteDatabase db = databases.getWritableDatabase();
-        ContentValues data = new ContentValues();
-        data.put("smsID", langigute);
-        data.put("type", longitute);
-        db.insertOrThrow("informationDB", null, data);
+  public void recordAdd(int id, String address, String body, String state, String date, String type, SmsStateDB smsDatabase) {
+    SQLiteDatabase db = smsDatabase.getWritableDatabase();
+    ContentValues data = new ContentValues();
+    data.put("smsID", id);
+    data.put("address", address);
+    data.put("body", body);
+    data.put("readState", state);
+    data.put("date", date);
+    data.put("type", type);
+    db.insertOrThrow("informationDB", null, data);
+  }
+
+
+  public void displaySms(TextView textView, SmsStateDB smsStateDB) {
+    SQLiteDatabase db = smsStateDB.getReadableDatabase();
+    Cursor cursor = db.query("informationDB", new String[]{"smsID", "address", "readState", "type"}, null, null, null, null, null);
+
+
+    StringBuilder builder = new StringBuilder();
+
+
+    while (cursor.moveToNext()) {
+
+      int id = cursor.getInt(cursor.getColumnIndex("smsID"));
+      String address = cursor.getString((cursor.getColumnIndex("address")));
+      String readState = cursor.getString((cursor.getColumnIndex("readState")));
+      String type = cursor.getString((cursor.getColumnIndex("type")));
+      builder.append(id).append("address:");
+      builder.append(address).append(" \nreadState:");
+      builder.append(readState).append(" \ntype:");
+      builder.append(type).append(" \n");
+
     }
-
-
-    public StringBuilder KayitGoster(SmsStateDB database) {
-        database = new SmsStateDB(this.context);
-        SQLiteDatabase db = database.getReadableDatabase();
-        StringBuilder builder = new StringBuilder();
-        Cursor cursor = db.query("informationDB", new String[]{"id", "smsID", "type"}, null, null, null, null, null);
-
-        while (cursor.moveToNext()) {
-
-            int id = cursor.getInt(cursor.getColumnIndex("id"));
-            String smsID = cursor.getString((cursor.getColumnIndex("smsID")));
-            String type = cursor.getString(cursor.getColumnIndex("type"));
-            builder.append(smsID).append("smsID:");
-            builder.append(type).append("type:\n");
-
-        }
-        return builder;
-    }
-
-
+    textView.setText(builder);
+  }
 }

@@ -4,21 +4,23 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.CallStateDB;
+import com.example.ibrhm.sayac.Data.DbOperations.CallDBOperations;
 import com.example.ibrhm.sayac.Data.DbOperations.LocationDBOperation;
+import com.example.ibrhm.sayac.Data.DbOperations.PhoneStateDBOperation;
 import com.example.ibrhm.sayac.Data.DbOperations.SmsDBOperations;
 import com.example.ibrhm.sayac.Data.LocationDB;
+import com.example.ibrhm.sayac.Data.PhoneStateDB;
 import com.example.ibrhm.sayac.Data.SmsStateDB;
 import com.example.ibrhm.sayac.R;
 import com.example.ibrhm.sayac.services.LocationServices;
@@ -33,39 +35,48 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     TextView textView;
     Button Open, Close;
-    Button display, display1, display2;
+    Button display, display1, display2, display3;
     CallStateDB database;
     SmsStateDB smsStateDB;
     LocationDB locationDB;
-    SmsDBOperations smsDBOperations;
+    SmsDBOperations smsDBOperations = new SmsDBOperations();
     LocationDBOperation locationDBOperation;
+    CallDBOperations operations = new CallDBOperations();
+    LocationDBOperation operation = new LocationDBOperation();
+    PhoneStateDB phoneStateDB = new PhoneStateDB(this);
+    PhoneStateDBOperation phoneStateDBOperation = new PhoneStateDBOperation();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView((int) R.layout.activity_main);
+        allOperation();
+        if (!checkAndRequestPermissions()) {
+            return;
+        }
+
+
+    }
+
+    public void allOperation() {
         this.start = (Button) findViewById(R.id.button);
         this.stop = (Button) findViewById(R.id.button2);
         display = (Button) findViewById(R.id.button3);
         display1 = (Button) findViewById(R.id.button4);
         display2 = (Button) findViewById(R.id.button5);
+        display3 = (Button) findViewById(R.id.button6);
         textView = (TextView) findViewById(R.id.textView2);
+        textView.setMovementMethod(new ScrollingMovementMethod());
         this.start.setOnClickListener(new Start());
         this.stop.setOnClickListener(new Close());
         smsStateDB = new SmsStateDB(this);
         database = new CallStateDB(this);
         locationDB = new LocationDB(this);
         display.setOnClickListener(new Display());
-        display1.setOnClickListener(new display1());
-        display2.setOnClickListener(new display2());
-
-
-        if (!checkAndRequestPermissions()) {
-            return;
-        }
-
+        display1.setOnClickListener(new Display1());
+        display2.setOnClickListener(new Display2());
+        display3.setOnClickListener(new Display3());
     }
-
 
     class Start implements View.OnClickListener {
         Start() {
@@ -97,87 +108,58 @@ public class MainActivity extends AppCompatActivity {
 
         public void onClick(View v) {
             try {
-                SQLiteDatabase db = smsStateDB.getReadableDatabase();
-                Cursor cursor = db.query("informationDB", new String[]{"smsID", "address"}, null, null, null, null, null);
-
-
-                StringBuilder builder = new StringBuilder();
-
-
-                while (cursor.moveToNext()) {
-
-                    int id = cursor.getInt(cursor.getColumnIndex("smsID"));
-                    String ad = cursor.getString((cursor.getColumnIndex("address")));
-                    builder.append(id).append(" Adı: ");
-                    builder.append(ad).append(" Soyadı: \n");
-                    textView.setText(builder);
-                }
-            } catch (Exception e) {
-                Toast.makeText(context, "diplayerror" + e, Toast.LENGTH_LONG).show();
+                smsDBOperations.displaySms(textView, smsStateDB);
+                } catch (Exception e) {
+                Toast.makeText(context, "Display ERROR" + e, Toast.LENGTH_LONG).show();
             }
         }
 
 
     }
 
-    class display1 implements View.OnClickListener {
-        display1() {
+    class Display3 implements View.OnClickListener {
+        Display3() {
         }
 
         StringBuilder builder = new StringBuilder();
 
         public void onClick(View v) {
             try {
-                textView.setText("");
-                SQLiteDatabase db = database.getReadableDatabase();
-                Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber"}, null, null, null, null, null);
-
-
-                StringBuilder builder = new StringBuilder();
-
-
-                while (cursor.moveToNext()) {
-
-                    int id = cursor.getInt(cursor.getColumnIndex("pID"));
-                    String ad = cursor.getString((cursor.getColumnIndex("phoneNumber")));
-                    builder.append(id).append(" Adı: ");
-                    builder.append(ad).append(" Soyadı: \n");
-                    textView.setText(builder);
-                }
+                phoneStateDBOperation.displayState(textView, phoneStateDB);
             } catch (Exception e) {
-                Toast.makeText(context, "diplayerror" + e, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Display3 ERROR:" + e, Toast.LENGTH_LONG).show();
             }
         }
 
 
     }
 
-    class display2 implements View.OnClickListener {
-        display2() {
+
+    class Display1 implements View.OnClickListener {
+        Display1() {
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        public void onClick(View v) {
+            operations.display(textView, database);
+
+        }
+
+
+    }
+
+    class Display2 implements View.OnClickListener {
+        Display2() {
         }
 
         StringBuilder builder = new StringBuilder();
 
         public void onClick(View v) {
             try {
-                textView.setText("");
-                SQLiteDatabase db = locationDB.getReadableDatabase();
-                Cursor cursor = db.query("informationDB", new String[]{"id", "date"}, null, null, null, null, null);
-
-
-                StringBuilder builder = new StringBuilder();
-
-
-                while (cursor.moveToNext()) {
-
-                    int id = cursor.getInt(cursor.getColumnIndex("id"));
-                    String ad = cursor.getString((cursor.getColumnIndex("date")));
-                    builder.append(id).append(" Adı: ");
-                    builder.append(ad).append(" Soyadı: \n");
-                    textView.setText(builder);
-                }
+                operation.displayLoc(textView, locationDB);
             } catch (Exception e) {
-                Toast.makeText(context, "diplayerror" + e, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Display ERROR:" + e, Toast.LENGTH_LONG).show();
             }
         }
 
@@ -195,8 +177,6 @@ public class MainActivity extends AppCompatActivity {
         int permissionCHANGE_WIFI_STATE = ContextCompat.checkSelfPermission(this, android.Manifest.permission.CHANGE_WIFI_STATE);
         int permissionREAD_PHONE_STATE = ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE);
         int permissionRECEIVE_BOOT_COMPLETED = ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECEIVE_BOOT_COMPLETED);
-        int permissionBLUETOOTH_ADMIN = ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_ADMIN);
-        int permissionBLUETOOTH = ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH);
         List<String> listPermissionsNeeded = new ArrayList<>();
         if (permissionINTERNET != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(android.Manifest.permission.INTERNET);
@@ -234,12 +214,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if (permissionRECEIVE_BOOT_COMPLETED != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.RECEIVE_BOOT_COMPLETED);
-        }
-        if (permissionBLUETOOTH_ADMIN != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.BLUETOOTH_ADMIN);
-        }
-        if (permissionBLUETOOTH != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.BLUETOOTH);
         }
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);

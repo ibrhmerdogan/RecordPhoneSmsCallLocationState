@@ -2,11 +2,9 @@ package com.example.ibrhm.sayac.services;
 
 
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,11 +13,9 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.Data.DbOperations.LocationDBOperation;
 import com.example.ibrhm.sayac.Data.LocationDB;
 import com.example.ibrhm.sayac.Data.SmsStateDB;
-import com.example.ibrhm.sayac.variable.LocationVeriable;
-
-import java.util.Date;
 
 public class LocationServices extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
@@ -31,7 +27,7 @@ public class LocationServices extends Service {
     String type;
     Cursor cursor2 = null;
     SmsStateDB smsDatabase;
-    LocationVeriable locationVeriable;
+    LocationDBOperation operation = new LocationDBOperation();
     Intent intent;
     public LocationServices.MyLocationListener listener;
     public LocationManager locationManager;
@@ -55,30 +51,29 @@ public class LocationServices extends Service {
             Log.i("**********", "Location changed");
             if (LocationServices.this.isBetterLocation(loc, LocationServices.this.previousBestLocation)) {
                 try {
-                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), BackgrondSMSservice.class));
+                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), SmsStateservice.class));
                     LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
+                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), PhoneStateService.class));
                 } catch (Exception e) {
-                    Toast.makeText(context, "class" + e, Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "LocationService start servece ERROR:" + e, Toast.LENGTH_LONG).show();
                 } finally {
-                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), BackgrondSMSservice.class));
+                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), SmsStateservice.class));
                     LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
+                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), PhoneStateService.class));
                 }
                 loc.getLatitude();
                 loc.getLongitude();
 
-                Toast.makeText(LocationServices.this.context, "Latitude", Toast.LENGTH_LONG).show();
+                Toast.makeText(LocationServices.this.context, "locations", Toast.LENGTH_LONG).show();
                 Intent intentt = new Intent("location_update");
                 intentt.putExtra("coordinates", +loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
                 locationDB = new LocationDB(LocationServices.this.context);
-                SQLiteDatabase db = locationDB.getReadableDatabase();
-                ContentValues data = new ContentValues();
-                Date date=new Date();
-                data.put("date", date.toString());
-                data.put("langitute", loc.getLatitude());
-                data.put("longitute",loc.getLongitude());
-                db.insertOrThrow("informationDB", null, data);
-
+                try {
+                    operation.recordLocation(loc.getLatitude(), loc.getLongitude(), locationDB);
+                } catch (Exception e) {
+                    Toast.makeText(context, "LocationServices location ERROR:" + e, Toast.LENGTH_LONG).show();
+                }
 
             }
             }

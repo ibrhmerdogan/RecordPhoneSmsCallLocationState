@@ -2,7 +2,6 @@ package com.example.ibrhm.sayac.services;
 
 import android.app.Service;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,6 +11,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.Data.DbOperations.SmsDBOperations;
 import com.example.ibrhm.sayac.Data.SmsStateDB;
 import com.example.ibrhm.sayac.variable.SmsVeriable;
 
@@ -20,28 +20,24 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
 import java.util.TreeMap;
 
 
-public class BackgrondSMSservice extends Service {
+public class SmsStateservice extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
-    private static final int TWO_MINUTES = 1000 * 60 * 1;
     String adres;
     String type;
-    Cursor cursor2 = null;
     Context context;
     SmsStateDB smsDatabase;
     Intent intent;
-    int counter = 0;
-    Timer timer;
+    SmsDBOperations operations = new SmsDBOperations();
 
     @Override
     public void onCreate() {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
         context=this;
-        // smsFunction();
+
 
     }
     @Override
@@ -50,24 +46,11 @@ public class BackgrondSMSservice extends Service {
         smsFunction();
     }
 
-    /*public void again() {
-        timer = new Timer();
-        timer.schedule(new TimerTask() {  //her 60 sn de bir bildirimGonder(); metodu çağırılır.
-            @Override
-            public void run() {
-                smsFunction();
-            }
-
-        }, 0, 60000);
-    }*/
     @Override
     public IBinder onBind(Intent intent){
         return null;
     }
 
-    /**
-     * Checks whether two providers are the same
-     */
     private boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {
             return provider2 == null;
@@ -103,9 +86,6 @@ public class BackgrondSMSservice extends Service {
         return t;
     }
 
-
-
-
     public void smsFunction() {
         Map<Integer, List<SmsVeriable>> smsMap = getAllSms();
 
@@ -118,9 +98,8 @@ public class BackgrondSMSservice extends Service {
             intent =new Intent("sms");
                 intent.putExtra("SmsVeriable", mesaj);
             sendBroadcast(intent);
+            } catch (Exception exception) {
             }
-            catch (Exception exception){
-                            }
         }
     }
 
@@ -139,61 +118,55 @@ public class BackgrondSMSservice extends Service {
                 for (int i = 0; i < totalSMS; i++) {
 
                     objSms = new SmsVeriable();
-                    objSms.setId(c.getString(c.getColumnIndexOrThrow("_id")));
+                    objSms.setId(c.getInt(c.getColumnIndexOrThrow("_id")));
                     objSms.setAddress(c.getString(c.getColumnIndexOrThrow("address")));
                     objSms.setMsg(c.getString(c.getColumnIndexOrThrow("body")));
                     objSms.setReadState(c.getString(c.getColumnIndex("read")));
                     objSms.setTime(c.getLong(c.getColumnIndexOrThrow("date")));
-
+                    if (c.getString(c.getColumnIndex("read")).contains("1")) {
+                        objSms.setReadState("Read");
+                    } else {
+                        objSms.setReadState("NonRead");
+                    }
                     if (c.getString(c.getColumnIndexOrThrow("type")).contains("1")) {
                         objSms.setFolderName("inbox");
                     } else {
                         objSms.setFolderName("sent");
                     }
 
-                    smsDatabase = new SmsStateDB(BackgrondSMSservice.this);
+                    smsDatabase = new SmsStateDB(SmsStateservice.this);
                     try {
 
-                        Cursor cursor;
+                        Cursor cursor2 = null;
 
                         try {
                             SQLiteDatabase db1 = smsDatabase.getReadableDatabase();
 
-                            cursor2 = db1.query("informationDB", new String[]{"smsID"}, "smsID=" + String.valueOf(objSms.getId()), null, null, null, null);
+                            cursor2 = db1.query("informationDB", new String[]{"smsID", "address", "date"}, "smsID=" + objSms.getId(), null, null, null, null);
                             cursor2.moveToFirst();
 
                         } catch (java.lang.IllegalArgumentException e) {
-                            Toast.makeText(context, "hata course" + e, Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "SmsStateService read database ERROR:" + e, Toast.LENGTH_LONG).show();
                         }
 
 
                         if (cursor2.getCount() == 0) {
 
-                            Toast.makeText(context, "not same smsID", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "not same sms ID", Toast.LENGTH_LONG).show();
                             try {
-
-
-                                SQLiteDatabase db = smsDatabase.getWritableDatabase();
-                                ContentValues data = new ContentValues();
-                                data.put("smsID", objSms.getId());
-                                data.put("address", objSms.getAddress());
-                                data.put("body", objSms.getMsg());
-                                data.put("readState", objSms.getReadState());
-                                data.put("date", objSms.getTime());
-                                data.put("type", objSms.getFolderName());
-                                db.insertOrThrow("informationDB", null, data);
+                                operations.recordAdd(objSms.getId(), objSms.getAddress(), objSms.getMsg(), objSms.getReadState(), String.valueOf(objSms.getTime()), objSms.getFolderName(), smsDatabase);
                             } catch (Exception e) {
-                                Toast.makeText(context, "hatatt" + e, Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, "SmsStateService record ERROR:" + e, Toast.LENGTH_LONG).show();
                             }
 
 
                         } else {
                             cursor2 = null;
-                            Toast.makeText(context, "same id", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "same sms id", Toast.LENGTH_LONG).show();
                         }
 
                     } catch (Exception e) {
-                        Toast.makeText(context, "hata" + e, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "SmsStateService ERROR:" + e, Toast.LENGTH_LONG).show();
                     } finally {
                         smsDatabase.close();
                     }
@@ -213,21 +186,4 @@ public class BackgrondSMSservice extends Service {
 
             return smsMap;
         }
-
-
- /*   public int getRowCount() {
-        // Bu method bu uygulamada kullanılmıyor ama her zaman lazım olabilir.Tablodaki row sayısını geri döner.
-        //Login uygulamasında kullanacağız
-        String countQuery = "SELECT  * FROM " + "informationDB";
-        SQLiteDatabase db = smsDatabase.getReadableDatabase();
-        Cursor cursor = db.rawQuery(countQuery, null);
-        int rowCount = cursor.getCount();
-        db.close();
-        cursor.close();
-        // return row count
-        return rowCount;
-    }*/
-
-
-
 }

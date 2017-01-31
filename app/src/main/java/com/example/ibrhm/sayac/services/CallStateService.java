@@ -2,7 +2,6 @@ package com.example.ibrhm.sayac.services;
 
 import android.app.Activity;
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,8 +13,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.ibrhm.sayac.Data.DbOperations.CallDBOperations;
 import com.example.ibrhm.sayac.Data.CallStateDB;
+import com.example.ibrhm.sayac.Data.DbOperations.CallDBOperations;
 import com.example.ibrhm.sayac.variable.CallStateVeriable;
 
 import java.util.Date;
@@ -27,11 +26,11 @@ import java.util.Date;
 @SuppressWarnings("deprecation")
 public class CallStateService extends Service {
     public static final String BROADCAST_ACTION = "Hello World";
-    private CallDBOperations operation;
     Context context;
     Intent intent;
-    CallStateDB database;
+    CallStateDB database = new CallStateDB(CallStateService.this);
     CallStateVeriable callObj = new CallStateVeriable();
+    CallDBOperations operations = new CallDBOperations();
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -48,7 +47,8 @@ public class CallStateService extends Service {
 
     @Override
     public void onStart(Intent intent, int startId) {
-        Call();
+
+        call();
     }
 
     /**
@@ -90,7 +90,7 @@ public class CallStateService extends Service {
         return t;
     }
 
-    public void Call() {
+    public void call() {
 
         try (Cursor cursor1 = managedQuery(CallLog.Calls.CONTENT_URI, null, null, null, null)) {
 
@@ -124,47 +124,36 @@ public class CallStateService extends Service {
                         break;
                 }
                 callObj.setCallType(callTypeStr);
-                database = new CallStateDB(CallStateService.this);
                 try {
                     Cursor cursor2 = null;
                     try {
                         SQLiteDatabase db1 = database.getReadableDatabase();
 
-                        cursor2 = db1.query("informationDB", new String[]{"pID", "phoneNumber"}, "pID=" + callObj.get_id(), null, null, null, null);
+                        cursor2 = db1.query("informationDB", new String[]{"pID"}, "pID=" + callObj.get_id(), null, null, null, null);
                         cursor2.moveToFirst();
 
                     } catch (java.lang.IllegalArgumentException e) {
-                        Toast.makeText(context, "hata course" + e, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "CallStateService Read Database ERROR:" + e, Toast.LENGTH_LONG).show();
                     }
 
                     if (cursor2.getCount() == 0) {
 
-                        Toast.makeText(context, "not same smsIiD", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "not same call id", Toast.LENGTH_LONG).show();
                         try {
 
-
-                            SQLiteDatabase db = database.getWritableDatabase();
-                            ContentValues data = new ContentValues();
-                            data.put("pID", callObj.get_id());
-                            data.put("phoneNumber", callObj.getpNumber());
-                            data.put("callDate", String.valueOf(callObj.getCallDate()));
-                            data.put("callDuration", callObj.getCallDuration());
-                            data.put("callType", callObj.getCallType());
-                            db.insertOrThrow("informationDB", null, data);
+                            operations.recordAdd(callObj.get_id(), callObj.getpNumber(), callObj.getCallDate(), callObj.getCallDuration(), callObj.getCallType(), database);
                         } catch (Exception e) {
-                            Toast.makeText(context, "hatatt" + e, Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "CallStateService Record ERROR:" + e, Toast.LENGTH_LONG).show();
                         }
 
 
                     } else {
                         cursor2 = null;
-                        Toast.makeText(context, "same iid", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "same call id", Toast.LENGTH_LONG).show();
 
                     }
                 } catch (Exception e) {
-                    Toast.makeText(context, "dış" + e, Toast.LENGTH_LONG).show();
-                } finally {
-                    database.close();
+                    Toast.makeText(context, "CallStateService ERROR" + e, Toast.LENGTH_LONG).show();
                 }
                 sb.append("pID:" + callObj.get_id());
                 sb.append("\nPhoneNumber:" + callObj.getpNumber());
@@ -172,7 +161,7 @@ public class CallStateService extends Service {
                 sb.append("\nCallDuration:" + callObj.getCallDuration());
                 sb.append("\nCallType:" + callObj.getCallType());
 
-              //  sb.append(System.getProperty("line.seperator"));
+                //  sb.append(System.getProperty("line.seperator"));
 
                 //  Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
 

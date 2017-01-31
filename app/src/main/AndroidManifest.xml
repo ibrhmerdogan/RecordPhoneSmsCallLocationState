@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.ibrhm.sayac">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_CALENDAR"/>
@@ -35,12 +36,12 @@
             android:exported="true"
             android:stopWithTask="false" />
         <service
-            android:name=".services.BackgroundPhonestate"
+            android:name=".services.PhoneStateService"
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false" />
         <service
-            android:name=".services.BackgrondSMSservice"
+            android:name=".services.SmsStateservice"
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false"></service>
@@ -49,6 +50,12 @@
             android:enabled="true"
             android:exported="true"
             android:stopWithTask="false"></service>
+
+        <receiver android:name=".services.BootCompleted">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
 
     </application>

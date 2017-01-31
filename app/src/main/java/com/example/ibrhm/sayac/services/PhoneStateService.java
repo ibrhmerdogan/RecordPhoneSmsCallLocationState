@@ -10,13 +10,17 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ibrhm.sayac.Data.DbOperations.PhoneStateDBOperation;
+import com.example.ibrhm.sayac.Data.PhoneStateDB;
 
-public class BackgroundPhonestate extends Service
+
+public class PhoneStateService extends Service
 {
     public static final String BROADCAST_ACTION = "Hello World";
     TelephonyManager telephonyManager;
     PhoneStateListener listenerPhone;
-
+    PhoneStateDBOperation operation = new PhoneStateDBOperation();
+    PhoneStateDB phoneStateDB = new PhoneStateDB(PhoneStateService.this);
     Context context;
 
     Intent intentt;
@@ -73,23 +77,20 @@ public class BackgroundPhonestate extends Service
 
     public void state(){
     listenerPhone = new PhoneStateListener() {
-        public void onCallStateChanged(int networkType, String incomingNumber) {
+        public void onCallStateChanged(int state, String incomingNumber) {
         String stateString = "N/A";
-            // networkType = telephonyManager.getNetworkType();
-            switch (networkType) {
-                case (TelephonyManager.NETWORK_TYPE_1xRTT):
-                    stateString = "NETWORK_TYPE_1xRTT";
+            switch (state) {
+                case (TelephonyManager.CALL_STATE_IDLE):
+                    stateString = "idle";
                 break;
-                case (TelephonyManager.NETWORK_TYPE_CDMA):
-                    stateString = "NETWORK_TYPE_CDMA";
+                case (TelephonyManager.CALL_STATE_RINGING):
+                    stateString = "ringing";
                     break;
-                case (TelephonyManager.NETWORK_TYPE_EDGE):
-                    stateString = "NETWORK_TYPE_EDGE";
+                case (TelephonyManager.CALL_STATE_OFFHOOK):
+                    stateString = "offHook";
                     break;
-                case (TelephonyManager.NETWORK_TYPE_EVDO_0):
-                    stateString = "NETWORK_TYPE_EVDO_0";
-                break;
-        }
+            }
+            operation.recordState(stateString, phoneStateDB);
         Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();
        intentt = new Intent("PhoneStates");
         intentt.putExtra("onCallStateChanged", stateString);

@@ -4,45 +4,50 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.TextView;
 
 import com.example.ibrhm.sayac.Data.CallStateDB;
+
+import java.util.Date;
 
 /**
  * Created by ibrhm on 24.01.2017.
  */
 
 public class CallDBOperations {
-    CallStateDB database;
-    Context context;
 
-    public void recordAdd(String langigute, String longitute) {
+    Context context;
+    CallStateDB database = new CallStateDB(this.context);
+
+    public void recordAdd(int id, String pNumber, Date callDate, String callDuration, String callType, CallStateDB database) {
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues data = new ContentValues();
-        data.put("langitute", langigute);
-        data.put("longitute", longitute);
-        db.insertOrThrow("information", null, data);
+        data.put("pID", id);
+        data.put("phoneNumber", pNumber);
+        data.put("callDate", String.valueOf(callDate));
+        data.put("callDuration", callDuration);
+        data.put("type", callType);
+        db.insertOrThrow("informationDB", null, data);
     }
 
-    public Cursor KayitGetir() {
+    public void display(TextView textView, CallStateDB database) {
+        textView.setText("");
         SQLiteDatabase db = database.getReadableDatabase();
-        Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber"}, null, null, null, null, null);
-        return cursor;
-    }
+        Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber", "callDate", "callDuration", "type"}, null, null, null, null, null);
 
-    public StringBuilder KayitGoster(Cursor cursor) {
+
         StringBuilder builder = new StringBuilder();
 
 
         while (cursor.moveToNext()) {
 
             int id = cursor.getInt(cursor.getColumnIndex("pID"));
-            String ad = cursor.getString((cursor.getColumnIndex("phoneNumber")));
-            builder.append(id).append(" Adı: ");
-            builder.append(ad).append(" Soyadı: \n");
-
+            String number = cursor.getString((cursor.getColumnIndex("phoneNumber")));
+            String callDuration = cursor.getString((cursor.getColumnIndex("callDuration")));
+            builder.append(id).append("number: ");
+            builder.append(number).append("\nduration:");
+            builder.append(callDuration).append("\n");
+            textView.setText(builder);
         }
-        return builder;
     }
-
-
 }

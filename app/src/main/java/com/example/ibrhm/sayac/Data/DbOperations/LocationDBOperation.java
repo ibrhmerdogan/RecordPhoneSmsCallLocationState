@@ -1,11 +1,14 @@
 package com.example.ibrhm.sayac.Data.DbOperations;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.widget.TextView;
 
 import com.example.ibrhm.sayac.Data.LocationDB;
+
+import java.util.Date;
 
 /**
  * Created by ibrhm on 30.01.2017.
@@ -14,37 +17,39 @@ import com.example.ibrhm.sayac.Data.LocationDB;
 public class LocationDBOperation {
     Context context;
 
-    public void recordDisplay(LocationDB database, TextView tv) {
-        SQLiteDatabase db = database.getReadableDatabase();
-        Cursor c = db.rawQuery("Select * from '" + "informationDB" + "'", null);
-        c.moveToFirst();
-        StringBuilder bld = new StringBuilder("");
-        do {
-            bld.append(c.getString(0) + " " + c.getString(1) + " " + c.getInt(2) + " " + c.getInt(3) + "");
+    public void recordLocation(Double langitute, Double longitute, LocationDB locationDB) {
+        SQLiteDatabase db = locationDB.getReadableDatabase();
+        ContentValues data = new ContentValues();
+        Date date = new Date();
+        data.put("date", date.toString());
+        data.put("langitute", langitute);
+        data.put("longitute", longitute);
+        db.insertOrThrow("informationDB", null, data);
 
-        } while (c.moveToNext());
-        tv.setText(c.getCount() + "" + bld.toString());
     }
 
- /*public Cursor getRecord(LocationDB locationDB) {
-     SQLiteDatabase dbb = locationDB.getReadableDatabase();
-     Cursor cursor = dbb.query("informationDB", new String[]{"id", "date", "langitute", "longitute"}, null, null, null, null, null);
-     return  cursor;
-         }
-  public StringBuilder diplayRecord(Cursor cursor){
-     StringBuilder builder=new StringBuilder();
-         while (cursor.moveToNext()) {
+    public void displayLoc(TextView textView, LocationDB locationDB) {
+        textView.setText("");
+        SQLiteDatabase db = locationDB.getReadableDatabase();
+        Cursor cursor = db.query("informationDB", new String[]{"id", "date", "langitute", "longitute"}, null, null, null, null, null);
 
-             long id = cursor.getLong(cursor.getColumnIndex("id"));
-             String date = cursor.getString(cursor.getColumnIndex("date"));
-             String langitute = cursor.getString((cursor.getColumnIndex("langitute")));
-             String longitute = cursor.getString((cursor.getColumnIndex("longitute")));
-             builder.append(date).append(" date: ");
-             builder.append(langitute).append("langitute:");
-             builder.append(longitute).append("\n");
 
-         }
+        StringBuilder builder = new StringBuilder();
 
-         return builder;
-  }*/
+
+        while (cursor.moveToNext()) {
+
+            int id = cursor.getInt(cursor.getColumnIndex("id"));
+            Double langitute = cursor.getDouble(cursor.getColumnIndex("langitute"));
+            Double longitute = cursor.getDouble(cursor.getColumnIndex("longitute"));
+            String date = cursor.getString((cursor.getColumnIndex("date")));
+            builder.append(id).append("langitute: ");
+            builder.append(langitute).append("\nlongitute: ");
+            builder.append(longitute).append("\ndate: ");
+            builder.append(date).append("\n");
+            textView.setText(builder);
+        }
+    }
+
+
 }

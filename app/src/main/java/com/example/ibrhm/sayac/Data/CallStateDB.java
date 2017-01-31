@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 public class CallStateDB extends SQLiteOpenHelper {
-    static final String DATABASE_NAME = "callStateDB";
+    static final String DATABASE_NAME = "callDBDBDB";
     // Contacts table name
     private static final String TABLE_COUNTRIES = "informationDB";
 
@@ -19,7 +19,7 @@ public class CallStateDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE informationDB (pID INTEGER PRIMARY KEY ,phoneNumber TEXT,callDate TEXT,callDuration REAL,callType TEXT);");
+        db.execSQL("CREATE TABLE informationDB (pID INTEGER PRIMARY KEY ,phoneNumber TEXT,callDate TEXT,callDuration TEXT,type TEXT);");
     }
 
     @Override
@@ -27,4 +27,5 @@ public class CallStateDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COUNTRIES);
         onCreate(db);
     }
+
 }
