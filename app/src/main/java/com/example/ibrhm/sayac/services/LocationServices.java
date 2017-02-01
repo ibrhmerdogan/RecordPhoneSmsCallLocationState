@@ -71,6 +71,7 @@ public class LocationServices extends Service {
                 locationDB = new LocationDB(LocationServices.this.context);
                 try {
                     operation.recordLocation(loc.getLatitude(), loc.getLongitude(), locationDB);
+                    operation.deleteRecord(locationDB);
                 } catch (Exception e) {
                     Toast.makeText(context, "LocationServices location ERROR:" + e, Toast.LENGTH_LONG).show();
                 }

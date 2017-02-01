@@ -17,6 +17,8 @@ import java.util.Date;
 public class CallDBOperations {
 
     Context context;
+    int count = 0;
+    int trailer = 0;
     CallStateDB database = new CallStateDB(this.context);
 
     public void recordAdd(int id, String pNumber, Date callDate, String callDuration, String callType, CallStateDB database) {
@@ -50,4 +52,22 @@ public class CallDBOperations {
             textView.setText(builder);
         }
     }
+
+    public void deleteRecord(CallStateDB callStateDB) {
+        SQLiteDatabase db = callStateDB.getReadableDatabase();
+        Cursor cursor = db.query("informationDB", new String[]{"pID", "phoneNumber", "callDuration", "type"}, null, null, null, null, null);
+
+
+        StringBuilder builder = new StringBuilder();
+        count = cursor.getCount();
+        trailer = count / 40;
+        while (cursor.moveToNext() && trailer > 0) {
+            trailer--;
+            int id = cursor.getInt(cursor.getColumnIndex("pID"));
+            db.delete("informationDB", "pID=" + id, null);
+
+        }
+
+    }
+
 }

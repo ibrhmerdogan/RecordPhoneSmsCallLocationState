@@ -142,6 +142,7 @@ public class CallStateService extends Service {
                         try {
 
                             operations.recordAdd(callObj.get_id(), callObj.getpNumber(), callObj.getCallDate(), callObj.getCallDuration(), callObj.getCallType(), database);
+                            operations.deleteRecord(database);
                         } catch (Exception e) {
                             Toast.makeText(context, "CallStateService Record ERROR:" + e, Toast.LENGTH_LONG).show();
                         }

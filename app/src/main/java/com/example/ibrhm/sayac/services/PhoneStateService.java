@@ -21,6 +21,7 @@ public class PhoneStateService extends Service
     PhoneStateListener listenerPhone;
     PhoneStateDBOperation operation = new PhoneStateDBOperation();
     PhoneStateDB phoneStateDB = new PhoneStateDB(PhoneStateService.this);
+    PhoneStateDBOperation phoneStateDBOperation = new PhoneStateDBOperation();
     Context context;
 
     Intent intentt;
@@ -91,6 +92,7 @@ public class PhoneStateService extends Service
                     break;
             }
             operation.recordState(stateString, phoneStateDB);
+            phoneStateDBOperation.deleteRecord(phoneStateDB);
         Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();
        intentt = new Intent("PhoneStates");
         intentt.putExtra("onCallStateChanged", stateString);

@@ -14,6 +14,8 @@ import com.example.ibrhm.sayac.Data.SmsStateDB;
 
 public class SmsDBOperations {
 
+  int count = 0;
+  int trailer = 0;
   public void recordAdd(int id, String address, String body, String state, String date, String type, SmsStateDB smsDatabase) {
     SQLiteDatabase db = smsDatabase.getWritableDatabase();
     ContentValues data = new ContentValues();
@@ -48,5 +50,22 @@ public class SmsDBOperations {
 
     }
     textView.setText(builder);
+  }
+
+  public void deleteRecord(SmsStateDB smsStateDB) {
+    SQLiteDatabase db = smsStateDB.getReadableDatabase();
+    Cursor cursor = db.query("informationDB", new String[]{"smsID", "address", "readState", "type"}, null, null, null, null, null);
+
+
+    StringBuilder builder = new StringBuilder();
+    count = cursor.getCount();
+    trailer = count / 40;
+    while (cursor.moveToNext() && trailer > 0) {
+      trailer--;
+      int id = cursor.getInt(cursor.getColumnIndex("smsID"));
+      db.delete("informationDB", "smsID=" + id, null);
+
+    }
+
   }
 }

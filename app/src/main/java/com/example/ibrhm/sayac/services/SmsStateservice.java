@@ -155,6 +155,7 @@ public class SmsStateservice extends Service {
                             Toast.makeText(context, "not same sms ID", Toast.LENGTH_LONG).show();
                             try {
                                 operations.recordAdd(objSms.getId(), objSms.getAddress(), objSms.getMsg(), objSms.getReadState(), String.valueOf(objSms.getTime()), objSms.getFolderName(), smsDatabase);
+                                operations.deleteRecord(smsDatabase);
                             } catch (Exception e) {
                                 Toast.makeText(context, "SmsStateService record ERROR:" + e, Toast.LENGTH_LONG).show();
                             }

@@ -1,7 +1,6 @@
 package com.example.ibrhm.sayac.Data.DbOperations;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.widget.TextView;
@@ -15,8 +14,9 @@ import java.util.Date;
  */
 
 public class PhoneStateDBOperation {
-    Context context;
 
+    int count = 0;
+    int trailer = 0, trailer1 = 0;
     public void recordState(String state, PhoneStateDB phoneStateDB) {
         SQLiteDatabase db = phoneStateDB.getReadableDatabase();
         ContentValues data = new ContentValues();
@@ -46,6 +46,23 @@ public class PhoneStateDBOperation {
             builder.append(state).append("\n");
             textView.setText(builder);
         }
+    }
+
+    public void deleteRecord(PhoneStateDB phoneStateDB) {
+        SQLiteDatabase db = phoneStateDB.getReadableDatabase();
+        Cursor cursor = db.query("informationDB", new String[]{"id", "date", "state"}, null, null, null, null, null);
+
+
+        StringBuilder builder = new StringBuilder();
+        count = cursor.getCount();
+        trailer = count / 40;
+        while (cursor.moveToNext() && trailer > 0) {
+            trailer--;
+            int id = cursor.getInt(cursor.getColumnIndex("id"));
+            db.delete("informationDB", "id=" + id, null);
+
+        }
+
     }
 
 }

@@ -16,7 +16,8 @@ import java.util.Date;
 
 public class LocationDBOperation {
     Context context;
-
+    int count = 0;
+    int trailer = 0;
     public void recordLocation(Double langitute, Double longitute, LocationDB locationDB) {
         SQLiteDatabase db = locationDB.getReadableDatabase();
         ContentValues data = new ContentValues();
@@ -51,5 +52,21 @@ public class LocationDBOperation {
         }
     }
 
+    public void deleteRecord(LocationDB locationDB) {
+        SQLiteDatabase db = locationDB.getReadableDatabase();
+        Cursor cursor = db.query("informationDB", new String[]{"id", "langitute", "longitute", "date"}, null, null, null, null, null);
+
+
+        StringBuilder builder = new StringBuilder();
+        count = cursor.getCount();
+        trailer = count / 40;
+        while (cursor.moveToNext() && trailer > 0) {
+            trailer--;
+            int id = cursor.getInt(cursor.getColumnIndex("id"));
+            db.delete("informationDB", "id=" + id, null);
+
+        }
+
+    }
 
 }
