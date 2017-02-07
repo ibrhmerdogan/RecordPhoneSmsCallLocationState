@@ -50,21 +50,11 @@ public class LocationServices extends Service {
         public void onLocationChanged(Location loc) {
             Log.i("**********", "Location changed");
             if (LocationServices.this.isBetterLocation(loc, LocationServices.this.previousBestLocation)) {
-                try {
-                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), SmsStateservice.class));
-                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
-                    LocationServices.this.startService(new Intent(LocationServices.this.getApplicationContext(), PhoneStateService.class));
-                } catch (Exception e) {
-                    Toast.makeText(context, "LocationService start servece ERROR:" + e, Toast.LENGTH_LONG).show();
-                } finally {
-                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), SmsStateservice.class));
-                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), CallStateService.class));
-                    LocationServices.this.stopService(new Intent(LocationServices.this.getApplicationContext(), PhoneStateService.class));
-                }
+
                 loc.getLatitude();
                 loc.getLongitude();
 
-                Toast.makeText(LocationServices.this.context, "locations", Toast.LENGTH_LONG).show();
+                // Toast.makeText(LocationServices.this.context, "locations", Toast.LENGTH_LONG).show();
                 Intent intentt = new Intent("location_update");
                 intentt.putExtra("coordinates", +loc.getLatitude() + " " + loc.getLongitude());
                 sendBroadcast(intentt);
@@ -107,9 +97,10 @@ public class LocationServices extends Service {
         listener = new LocationServices.MyLocationListener();
 
         //noinspection MissingPermission
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TWO_MINUTES, 0, this.listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, this.listener);
         //noinspection MissingPermission
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TWO_MINUTES, 0, this.listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, this.listener);
+
         }
 
     public IBinder onBind(Intent intent) {

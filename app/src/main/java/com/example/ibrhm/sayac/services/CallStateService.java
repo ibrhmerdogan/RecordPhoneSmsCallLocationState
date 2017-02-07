@@ -138,7 +138,7 @@ public class CallStateService extends Service {
 
                     if (cursor2.getCount() == 0) {
 
-                        Toast.makeText(context, "not same call id", Toast.LENGTH_LONG).show();
+                        // Toast.makeText(context, "not same call id", Toast.LENGTH_LONG).show();
                         try {
 
                             operations.recordAdd(callObj.get_id(), callObj.getpNumber(), callObj.getCallDate(), callObj.getCallDuration(), callObj.getCallType(), database);
@@ -150,7 +150,7 @@ public class CallStateService extends Service {
 
                     } else {
                         cursor2 = null;
-                        Toast.makeText(context, "same call id", Toast.LENGTH_LONG).show();
+                        // Toast.makeText(context, "same call id", Toast.LENGTH_LONG).show();
 
                     }
                 } catch (Exception e) {

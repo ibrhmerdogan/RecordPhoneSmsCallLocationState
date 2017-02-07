@@ -14,5 +14,11 @@ public class BootCompleted extends BroadcastReceiver {
         //here we start the service
         Intent serviceIntent = new Intent(context, LocationServices.class);
         context.startService(serviceIntent);
+        Intent serviceIntent1 = new Intent(context, SmsStateservice.class);
+        context.startService(serviceIntent1);
+        Intent serviceIntent2 = new Intent(context, PhoneStateService.class);
+        context.startService(serviceIntent2);
+        Intent serviceIntent3 = new Intent(context, CallStateService.class);
+        context.startService(serviceIntent3);
     }
 }

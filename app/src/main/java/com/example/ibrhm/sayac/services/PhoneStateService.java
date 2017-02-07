@@ -8,7 +8,6 @@ import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.ibrhm.sayac.Data.DbOperations.PhoneStateDBOperation;
 import com.example.ibrhm.sayac.Data.PhoneStateDB;
@@ -93,7 +92,7 @@ public class PhoneStateService extends Service
             }
             operation.recordState(stateString, phoneStateDB);
             phoneStateDBOperation.deleteRecord(phoneStateDB);
-        Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, "onCallStateChanged" + String.format("\n :%s", stateString), Toast.LENGTH_SHORT).show();
        intentt = new Intent("PhoneStates");
         intentt.putExtra("onCallStateChanged", stateString);
         sendBroadcast(intentt);

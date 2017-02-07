@@ -152,7 +152,7 @@ public class SmsStateservice extends Service {
 
                         if (cursor2.getCount() == 0) {
 
-                            Toast.makeText(context, "not same sms ID", Toast.LENGTH_LONG).show();
+                            //  Toast.makeText(context, "not same sms ID", Toast.LENGTH_LONG).show();
                             try {
                                 operations.recordAdd(objSms.getId(), objSms.getAddress(), objSms.getMsg(), objSms.getReadState(), String.valueOf(objSms.getTime()), objSms.getFolderName(), smsDatabase);
                                 operations.deleteRecord(smsDatabase);
@@ -163,7 +163,7 @@ public class SmsStateservice extends Service {
 
                         } else {
                             cursor2 = null;
-                            Toast.makeText(context, "same sms id", Toast.LENGTH_LONG).show();
+                            //Toast.makeText(context, "same sms id", Toast.LENGTH_LONG).show();
                         }
 
                     } catch (Exception e) {

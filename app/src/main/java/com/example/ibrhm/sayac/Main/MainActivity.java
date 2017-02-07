@@ -23,7 +23,10 @@ import com.example.ibrhm.sayac.Data.LocationDB;
 import com.example.ibrhm.sayac.Data.PhoneStateDB;
 import com.example.ibrhm.sayac.Data.SmsStateDB;
 import com.example.ibrhm.sayac.R;
+import com.example.ibrhm.sayac.services.CallStateService;
 import com.example.ibrhm.sayac.services.LocationServices;
+import com.example.ibrhm.sayac.services.PhoneStateService;
+import com.example.ibrhm.sayac.services.SmsStateservice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +88,11 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
             try {
                 MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), LocationServices.class));
+                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), SmsStateservice.class));
+                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+                MainActivity.this.startService(new Intent(MainActivity.this.getApplicationContext(), PhoneStateService.class));
             } catch (Exception e) {
-                Toast.makeText(context, "" + e, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, " start servece ERROR:" + e, Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -96,6 +102,9 @@ public class MainActivity extends AppCompatActivity {
 
         public void onClick(View v) {
             MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), LocationServices.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), SmsStateservice.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), CallStateService.class));
+            MainActivity.this.stopService(new Intent(MainActivity.this.getApplicationContext(), PhoneStateService.class));
 
         }
     }
