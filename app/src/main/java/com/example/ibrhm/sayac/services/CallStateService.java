@@ -42,15 +42,24 @@ public class CallStateService extends Service {
         super.onCreate();
         intent = new Intent(BROADCAST_ACTION);
         context = this;
-        //Call();
+
     }
 
     @Override
-    public void onStart(Intent intent, int startId) {
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        onTaskRemoved(intent);
+        // Toast.makeText(getApplicationContext(),"he",Toast.LENGTH_LONG).show();
         call();
+        return START_STICKY;
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceIntent = new Intent(getApplicationContext(), getClass());
+        restartServiceIntent.setPackage(getPackageName());
+        startService(restartServiceIntent);
+        super.onTaskRemoved(rootIntent);
+    }
     /**
      * Checks whether two providers are the same
      */
@@ -145,6 +154,9 @@ public class CallStateService extends Service {
                             operations.deleteRecord(database);
                         } catch (Exception e) {
                             Toast.makeText(context, "CallStateService Record ERROR:" + e, Toast.LENGTH_LONG).show();
+                        } finally {
+                            if (cursor2 != null)
+                                cursor2.close();
                         }
 
 
@@ -153,6 +165,7 @@ public class CallStateService extends Service {
                         // Toast.makeText(context, "same call id", Toast.LENGTH_LONG).show();
 
                     }
+
                 } catch (Exception e) {
                     Toast.makeText(context, "CallStateService ERROR" + e, Toast.LENGTH_LONG).show();
                 }
@@ -165,6 +178,7 @@ public class CallStateService extends Service {
                 //  sb.append(System.getProperty("line.seperator"));
 
                 //  Toast.makeText(context, "call" + sb, Toast.LENGTH_LONG).show();
+
 
             }
         }

@@ -36,11 +36,21 @@ public class PhoneStateService extends Service
     }
 
     @Override
-    public void onStart(Intent intent, int startId) {
-         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        onTaskRemoved(intent);
+        // Toast.makeText(getApplicationContext(),"he",Toast.LENGTH_LONG).show();
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         state();
+        return START_STICKY;
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceIntent = new Intent(getApplicationContext(), getClass());
+        restartServiceIntent.setPackage(getPackageName());
+        startService(restartServiceIntent);
+        super.onTaskRemoved(rootIntent);
+    }
     @Override
     public IBinder onBind(Intent intent){
         return null;

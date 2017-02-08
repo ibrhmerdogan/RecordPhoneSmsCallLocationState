@@ -41,9 +41,19 @@ public class SmsStateservice extends Service {
 
     }
     @Override
-    public void onStart(Intent intent, int startId) {
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        onTaskRemoved(intent);
+        //Toast.makeText(getApplicationContext(),"he",Toast.LENGTH_LONG).show();
         smsFunction();
+        return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Intent restartServiceIntent = new Intent(getApplicationContext(), getClass());
+        restartServiceIntent.setPackage(getPackageName());
+        startService(restartServiceIntent);
+        super.onTaskRemoved(rootIntent);
     }
 
     @Override
@@ -142,7 +152,7 @@ public class SmsStateservice extends Service {
                         try {
                             SQLiteDatabase db1 = smsDatabase.getReadableDatabase();
 
-                            cursor2 = db1.query("informationDB", new String[]{"smsID", "address", "date"}, "smsID=" + objSms.getId(), null, null, null, null);
+                            cursor2 = db1.query("informationDB", new String[]{"smsID"}, "smsID=" + objSms.getId(), null, null, null, null);
                             cursor2.moveToFirst();
 
                         } catch (java.lang.IllegalArgumentException e) {
@@ -158,6 +168,9 @@ public class SmsStateservice extends Service {
                                 operations.deleteRecord(smsDatabase);
                             } catch (Exception e) {
                                 Toast.makeText(context, "SmsStateService record ERROR:" + e, Toast.LENGTH_LONG).show();
+                            } finally {
+                                if (cursor2 != null)
+                                    cursor2.close();
                             }
 
 
